@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#17120e">
+  <meta name="description" content="Snooker van FS-Creations — speel lokaal en later online tegen elkaar.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/snooker.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css?v=29">
+  <title>Snooker — FS-Creations</title>
+</head>
+<body>
+  <main id="app" aria-label="Snooker">
+    <canvas id="table" aria-label="Snookertafel"></canvas>
+
+    <section id="start-menu" class="cloth-overlay" aria-label="Hoofdmenu">
+      <div class="title-block">
+        
+        <h1>SNOOKER</h1>
+      </div>
+
+      <nav class="menu" aria-label="Spelvarianten">
+        <button type="button" data-mode="solo">SOLO</button>
+        <button type="button" data-mode="computer">TEGEN PHONE</button>
+        <button type="button" data-mode="school">SCHOLING</button>
+        <button type="button" data-action="readme">README</button>
+        <button type="button" data-mode="online">ONLINE</button>
+      </nav>
+
+      <footer>
+        <img src="icons/LogoFS.png" alt="FS-Creations-logo">
+        <span>© 2026 FS-Creations</span>
+        <a href="https://freeapps-exchange.com" target="_blank" rel="noopener">freeapps-exchange.com</a>
+      </footer>
+    </section>
+
+    <section id="online-menu" class="cloth-overlay online-overlay" aria-label="Online spelen" hidden>
+      <div class="title-block">
+        <p id="online-status" class="score-placeholder" aria-live="polite">OFFLINE</p>
+        <h1>ONLINE</h1>
+      </div>
+
+      <div class="online-panel">
+        <label for="player-name">NAAM</label>
+        <input id="player-name" maxlength="20" autocomplete="nickname" placeholder="UW NAAM">
+        <button type="button" data-action="create-room">MAAK KAMER</button>
+
+        <div class="join-row">
+          <input id="room-code" maxlength="6" inputmode="text" autocomplete="off" placeholder="KAMERCODE">
+          <button type="button" data-action="join-room">DEELNEMEN</button>
+        </div>
+
+        <div id="room-info" class="room-info" hidden>
+          <span>KAMER</span>
+          <strong id="active-room-code">------</strong>
+          <button type="button" data-action="copy-room">KOPIEER CODE</button>
+          <p id="opponent-name">WACHT OP TEGENSTANDER</p>
+        </div>
+
+        <p id="e-online-message" class="online-message"></p>
+        <button type="button" data-action="leave-online">EXIT</button>
+      </div>
+      <div></div>
+    </section>
+
+    <section id="level-menu" class="cloth-overlay" aria-label="Niveau kiezen" hidden>
+      <div class="title-block">
+        <p class="score-placeholder">TEGEN PHONE</p>
+        <h1>NIVEAU</h1>
+      </div>
+      <nav class="menu" aria-label="Phone-niveau">
+        <button type="button" data-level="novice">NOVICE</button>
+        <button type="button" data-level="basic">BASIC</button>
+        <button type="button" data-level="advanced">GEVORDERD</button>
+        <button type="button" data-level="expert">EXPERT</button>
+        <button type="button" data-action="back-start">TERUG</button>
+      </nav>
+      <div></div>
+    </section>
+
+    <section id="readme" class="dialog" aria-modal="true" role="dialog" hidden>
+      <div class="dialog-card">
+        <h2>Snooker</h2>
+        <p>Kies een spelvariant om te starten.</p>
+        <p>Richt de keu door hem met één vinger te draaien. Tik op hey laken om de richting vast te zetten. Trek de keu achteruit en laat los; de afstand bepaalt de kracht.</p>
+        <p>Het Spel volgt de normale snookerregels. Effecten en hulplijnen worden in dezelfde bediening als de APK opgenomen.</p>
+        <button type="button" data-action="close-readme">SLUITEN</button>
+      </div>
+    </section>
+
+    <section id="game-ui" class="game-ui" hidden>
+      <div class="score" aria-live="polite">
+        <span id="status">FAUL of GEEN POT</span>
+        <strong id="target">speel ROOD</strong>
+      </div>
+      <nav class="bottom-menu" aria-label="Spelbediening">
+        <button type="button" data-action="effect">EFFECT</button>
+        <button type="button" data-action="guide">HULP AAN</button>
+        <button type="button" data-action="reset">RESET</button>
+        <button type="button" data-action="new-training" hidden>NIEUW</button>
+        <button type="button" data-action="game-readme">?</button>
+        <button type="button" data-action="exit">EXIT</button>
+      </nav>
+    </section>
+  </main>
+
+  <script type="module" src="src/main.js?v=29"></script>
+</body>
+</html>
