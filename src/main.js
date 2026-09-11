@@ -228,22 +228,44 @@ document.addEventListener('click', (event) => {
     currentChallenge = null;
     challengeBox.hidden = true;
   }
-  if (action === 'leave-online') {
+   if (action === 'leave-online') {
     lobby.leave();
+    codePanel.hidden = true;
     onlineMenu.hidden = true;
     startMenu.hidden = false;
-    codePanel.hidden = true;
   }
-  if (action === 'copy-room' && activeRoomCode.textContent !== '------') {
-    navigator.clipboard?.writeText(activeRoomCode.textContent)
-      .then(() => { onlineMessage.textContent = 'KAMERCODE GEKOPIEERD'; })
-      .catch(() => { onlineMessage.textContent = `KAMERCODE: ${activeRoomCode.textContent}`; });
+
+  if (action === 'toggle-code') {
+    codePanel.hidden = !codePanel.hidden;
   }
-  if (action === 'readme' || action === 'game-readme') showReadme();
-  if (action === 'close-readme') hideReadme();
+
+  if (action === 'copy-room' &&
+      activeRoomCode.textContent !== '------') {
+
+    navigator.clipboard
+      ?.writeText(activeRoomCode.textContent)
+      .then(() => {
+        onlineMessage.textContent = 'KAMERCODE GEKOPIEERD';
+      })
+      .catch(() => {
+        onlineMessage.textContent =
+          `KAMERCODE: ${activeRoomCode.textContent}`;
+      });
+  }
+
+  if (action === 'readme' ||
+      action === 'game-readme') {
+    showReadme();
+  }
+
+  if (action === 'close-readme') {
+    hideReadme();
+  }
+
   if (action === 'install') {
     if (installPrompt) {
       installPrompt.prompt();
+
       installPrompt.userChoice.finally(() => {
         installPrompt = null;
         installButton.hidden = true;
@@ -252,28 +274,52 @@ document.addEventListener('click', (event) => {
       installHelp.hidden = false;
     }
   }
-  if (action === 'close-install-help') installHelp.hidden = true;
-  if (action === 'effect') table.toggleEffectSelector();
+
+  if (action === 'close-install-help') {
+    installHelp.hidden = true;
+  }
+
+  if (action === 'effect') {
+    table.toggleEffectSelector();
+  }
+
   if (action === 'guide') {
     const guide = table.toggleGuide();
-    guideButton.textContent = guide === 'extra'
-      ? 'HULP EXTRA'
-      : guide === 'normal' || guide === true ? 'HULP NORMAAL' : 'HULP UIT';
+
+    guideButton.textContent =
+      guide === 'extra'
+        ? 'HULP EXTRA'
+        : guide === 'normal' || guide === true
+          ? 'HULP NORMAAL'
+          : 'HULP UIT';
   }
+
   if (action === 'reset') {
-    if (table.mode === 'online' && table.phase === 'disconnected') return;
-    if (table.mode === 'online') lobby.sendReset();
+    if (table.mode === 'online' &&
+        table.phase === 'disconnected') {
+      return;
+    }
+
+    if (table.mode === 'online') {
+      lobby.sendReset();
+    }
+
     table.reset();
-    guideButton.textContent = table.mode === 'school' ? 'HULP EXTRA' : 'HULP AAN';
+
+    guideButton.textContent =
+      table.mode === 'school'
+        ? 'HULP EXTRA'
+        : 'HULP AAN';
   }
+
   if (action === 'new-training') {
     table.newTrainingScenario();
     guideButton.textContent = 'HULP EXTRA';
   }
-  if (action === 'exit') exitGame();
-  if (action === 'toggle-code') {
-    codePanel.hidden = !codePanel.hidden;
-}
+
+  if (action === 'exit') {
+    exitGame();
+  }
 });
 
 window.addEventListener('resize', () => table.resize());
