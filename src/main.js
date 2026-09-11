@@ -1,5 +1,5 @@
-import { SnookerTable } from './table.js?v=30';
-import { OnlineLobby } from './online.js?v=30';
+import { SnookerTable } from './table.js?v=31';
+import { OnlineLobby } from './online.js?v=31';
 
 const canvas = document.querySelector('#table');
 const startMenu = document.querySelector('#start-menu');
@@ -7,6 +7,8 @@ const levelMenu = document.querySelector('#level-menu');
 const onlineMenu = document.querySelector('#online-menu');
 const gameUi = document.querySelector('#game-ui');
 const readme = document.querySelector('#readme');
+const installHelp = document.querySelector('#install-help');
+const installButton = document.querySelector('#install-button');
 const bottomMenu = document.querySelector('.bottom-menu');
 const guideButton = document.querySelector('[data-action="guide"]');
 const status = document.querySelector('#status');
@@ -24,6 +26,22 @@ const availablePlayers = document.querySelector('#available-players');
 const challengeBox = document.querySelector('#challenge-box');
 const challengeText = document.querySelector('#challenge-text');
 let currentChallenge = null;
+let installPrompt = null;
+
+const standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const isiOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+if (isiOS && !standalone) installButton.hidden = false;
+
+window.addEventListener('beforeinstallprompt', (event) => {
+  event.preventDefault();
+  installPrompt = event;
+  if (!standalone) installButton.hidden = false;
+});
+
+window.addEventListener('appinstalled', () => {
+  installPrompt = null;
+  installButton.hidden = true;
+});
 
 playerNameInput.value = localStorage.getItem('snooker-player-name') || '';
 
@@ -193,6 +211,18 @@ document.addEventListener('click', (event) => {
   }
   if (action === 'readme' || action === 'game-readme') showReadme();
   if (action === 'close-readme') hideReadme();
+  if (action === 'install') {
+    if (installPrompt) {
+      installPrompt.prompt();
+      installPrompt.userChoice.finally(() => {
+        installPrompt = null;
+        installButton.hidden = true;
+      });
+    } else {
+      installHelp.hidden = false;
+    }
+  }
+  if (action === 'close-install-help') installHelp.hidden = true;
   if (action === 'effect') table.toggleEffectSelector();
   if (action === 'guide') {
     const guide = table.toggleGuide();
@@ -232,5 +262,5 @@ if (playerNameInput.value.trim()) {
 }
 
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js?v=30'));
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js?v=31'));
 }

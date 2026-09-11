@@ -7,7 +7,8 @@
   <meta name="description" content="Snooker van FS-Creations — speel lokaal en later online tegen elkaar.">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/snooker.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=30">
+  <link rel="apple-touch-icon" href="icons/snooker-192.png">
+  <link rel="stylesheet" href="styles.css?v=31">
   <title>Snooker — FS-Creations</title>
 </head>
 <body>
@@ -26,6 +27,7 @@
         <button type="button" data-mode="school">SCHOLING</button>
         <button type="button" data-action="readme">README</button>
         <button type="button" data-mode="online">ONLINE</button>
+        <button id="install-button" type="button" data-action="install" hidden>INSTALLEER</button>
       </nav>
 
       <footer>
@@ -103,6 +105,14 @@
       </div>
     </section>
 
+    <section id="install-help" class="dialog" aria-modal="true" role="dialog" hidden>
+      <div class="dialog-card">
+        <h2>Installeer Snooker</h2>
+        <p>Open het deelmenu van uw browser en kies <strong>Zet op beginscherm</strong> of <strong>Voeg toe aan beginscherm</strong>.</p>
+        <button type="button" data-action="close-install-help">SLUITEN</button>
+      </div>
+    </section>
+
     <section id="game-ui" class="game-ui" hidden>
       <div class="score" aria-live="polite">
         <span id="status">FAUL OF GEEN POT</span>
@@ -119,6 +129,6 @@
     </section>
   </main>
 
-  <script type="module" src="src/main.js?v=30"></script>
+  <script type="module" src="src/main.js?v=31"></script>
 </body>
 </html>

@@ -1,5 +1,5 @@
-const CACHE = 'fs-snooker-v30';
-const ASSETS = ['./', './index.html', './styles.css?v=30', './src/main.js?v=30', './src/online.js?v=30', './src/table.js?v=30', './manifest.webmanifest', './icons/snooker.svg'];
+const CACHE = 'fs-snooker-v31';
+const ASSETS = ['./', './index.html', './styles.css?v=31', './src/main.js?v=31', './src/online.js?v=31', './src/table.js?v=31', './manifest.webmanifest', './icons/snooker.svg', './icons/snooker-192.png', './icons/snooker-512.png'];
 
 self.addEventListener('install', (event) => event.waitUntil(
   caches.open(CACHE).then((cache) => cache.addAll(ASSETS)).then(() => self.skipWaiting())

@@ -4,7 +4,7 @@ Afzonderlijke webversie van Snooker door FS-Creations.
 
 ## Huidige basis
 
-- installeerbare PWA met offline cache;
+- installeerbare PWA met offline cache, eigen installatieknop en geschikte Android/iOS-pictogrammen;
 - responsieve tafel volgens 3569 × 1778 mm;
 - startmenu voor Solo, Tegen Phone en Scholing;
 - lege starttafel en officiële beginopstelling;

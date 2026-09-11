@@ -163,7 +163,7 @@ footer {
   display: flex;
   align-items: center;
   gap: .65rem;
-  padding-bottom: clamp(10px, 2vmin, 24px);
+  padding-bottom: clamp(40px, 2vmin, 24px);
   font-size: clamp(.8rem, 1.7vmin, 1.05rem);
   pointer-events: auto;
 }
