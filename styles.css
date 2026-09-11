@@ -157,10 +157,6 @@ button:disabled { opacity: .35; cursor: default; }
   letter-spacing: 0.08em;
 }
 
-.online-panel [data-action="toggle-code"] {
-  margin-top: 100px;
-}
-
 #available-players {
   display: grid;
   width: min(100%, 25rem);
