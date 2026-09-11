@@ -7,7 +7,7 @@
   <meta name="description" content="Snooker van FS-Creations — speel lokaal en later online tegen elkaar.">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/snooker.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=29">
+  <link rel="stylesheet" href="styles.css?v=30">
   <title>Snooker — FS-Creations</title>
 </head>
 <body>
@@ -16,7 +16,7 @@
 
     <section id="start-menu" class="cloth-overlay" aria-label="Hoofdmenu">
       <div class="title-block">
-        
+        <p class="score-placeholder">FAUL OF GEEN POT</p>
         <h1>SNOOKER</h1>
       </div>
 
@@ -44,6 +44,20 @@
       <div class="online-panel">
         <label for="player-name">NAAM</label>
         <input id="player-name" maxlength="20" autocomplete="nickname" placeholder="UW NAAM">
+
+        <section class="presence-panel" aria-label="Beschikbare spelers">
+          <strong>BESCHIKBARE SPELERS</strong>
+          <div id="available-players"><span>NOG NIEMAND ONLINE</span></div>
+        </section>
+
+        <section id="challenge-box" class="challenge-box" hidden>
+          <strong id="challenge-text">IEMAND WIL MET U SPELEN</strong>
+          <div>
+            <button type="button" data-action="accept-challenge">AANNEMEN</button>
+            <button type="button" data-action="decline-challenge">WEIGEREN</button>
+          </div>
+        </section>
+
         <button type="button" data-action="create-room">MAAK KAMER</button>
 
         <div class="join-row">
@@ -82,17 +96,17 @@
     <section id="readme" class="dialog" aria-modal="true" role="dialog" hidden>
       <div class="dialog-card">
         <h2>Snooker</h2>
-        <p>Kies een spelvariant om te starten.</p>
-        <p>Richt de keu door hem met één vinger te draaien. Tik op hey laken om de richting vast te zetten. Trek de keu achteruit en laat los; de afstand bepaalt de kracht.</p>
-        <p>Het Spel volgt de normale snookerregels. Effecten en hulplijnen worden in dezelfde bediening als de APK opgenomen.</p>
+        <p>Kies een variant om te starten.</p>
+        <p>Richt de keu door hem met één vinger te draaien. Tik om de richting vast te zetten. Trek de keu achteruit en laat los; de afstand bepaalt de kracht.</p>
+        <p>Speel volgens de normale snookerregels. Effecten en hulplijnen worden in dezelfde bediening als de APK opgenomen.</p>
         <button type="button" data-action="close-readme">SLUITEN</button>
       </div>
     </section>
 
     <section id="game-ui" class="game-ui" hidden>
       <div class="score" aria-live="polite">
-        <span id="status">FAUL of GEEN POT</span>
-        <strong id="target">speel ROOD</strong>
+        <span id="status">FAUL OF GEEN POT</span>
+        <strong id="target">SPEEL ROOD</strong>
       </div>
       <nav class="bottom-menu" aria-label="Spelbediening">
         <button type="button" data-action="effect">EFFECT</button>
@@ -105,6 +119,6 @@
     </section>
   </main>
 
-  <script type="module" src="src/main.js?v=29"></script>
+  <script type="module" src="src/main.js?v=30"></script>
 </body>
 </html>

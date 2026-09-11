@@ -131,12 +131,39 @@ button:disabled { opacity: .35; cursor: default; }
 .room-info p { margin: .35rem 0 0; font-weight: 700; }
 .online-message { min-height: 1.3em; margin: 0; text-align: center; opacity: .85; }
 
+.presence-panel {
+  width: 100%;
+  min-height: 4.2rem;
+  text-align: center;
+}
+
+.presence-panel > strong { display: block; margin-bottom: .35rem; letter-spacing: .08em; }
+
+#available-players {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: .2rem .7rem;
+}
+
+#available-players span { opacity: .65; font-size: .9em; }
+#available-players button { padding: .2rem .45rem; }
+
+.challenge-box {
+  width: 100%;
+  padding: .55rem;
+  border-block: 1px solid rgb(138 202 155 / .5);
+  text-align: center;
+}
+
+.challenge-box > strong { display: block; margin-bottom: .3rem; }
+
 footer {
   align-self: end;
   display: flex;
   align-items: center;
   gap: .65rem;
-  padding-bottom: clamp(50px, 2vmin, 24px);
+  padding-bottom: clamp(10px, 2vmin, 24px);
   font-size: clamp(.8rem, 1.7vmin, 1.05rem);
   pointer-events: auto;
 }

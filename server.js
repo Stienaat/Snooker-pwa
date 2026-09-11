@@ -7,6 +7,7 @@ import { WebSocketServer, WebSocket } from 'ws';
 const root = fileURLToPath(new URL('.', import.meta.url));
 const port = Number(process.env.PORT || 8080);
 const rooms = new Map();
+const presence = new Map();
 const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
 const mime = {
@@ -39,6 +40,42 @@ function relay(room, sender, message) {
   room.players
     .filter((player) => player.socket !== sender)
     .forEach(({ socket }) => send(socket, message));
+}
+
+function publishPresence() {
+  const players = [...presence.values()].map(({ name, token, status }) => ({ name, token, status }));
+  for (const client of wss.clients) send(client, { type: 'PRESENCE_LIST', players });
+}
+
+function setPresence(socket, name, token, status) {
+  socket.playerName = name;
+  socket.playerToken = token;
+  presence.set(token, { name, token, status, socket, seenAt: Date.now() });
+  publishPresence();
+}
+
+function createMatchedRoom(first, second) {
+  leave(first.socket, false);
+  leave(second.socket, false);
+  const code = roomCode();
+  const room = {
+    code,
+    players: [
+      { name: first.name, token: first.token, seat: 'player1', socket: first.socket },
+      { name: second.name, token: second.token, seat: 'player2', socket: second.socket }
+    ],
+    turnToken: first.token,
+    shotInProgress: false,
+    state: null,
+    seatByToken: new Map([[first.token, 'player1'], [second.token, 'player2']]),
+    cleanupTimer: null
+  };
+  rooms.set(code, room);
+  for (const player of room.players) {
+    player.socket.roomCode = code;
+    setPresence(player.socket, player.name, player.token, 'busy');
+  }
+  publish(room);
 }
 
 function leave(socket, notify = true) {
@@ -75,6 +112,37 @@ wss.on('connection', (socket) => {
     const name = String(data.playerName || '').trim().slice(0, 20);
     const token = String(data.playerToken || '').slice(0, 80);
     if (!name || !token) return send(socket, { type: 'ERROR', message: 'Naam ontbreekt.' });
+    socket.playerName = name;
+    socket.playerToken = token;
+
+    if (data.type === 'PRESENCE' || data.type === 'HEARTBEAT') {
+      const status = data.status === 'busy' ? 'busy' : 'available';
+      setPresence(socket, name, token, status);
+    }
+
+    if (data.type === 'CHALLENGE') {
+      const challenger = presence.get(token);
+      const target = presence.get(String(data.targetToken || ''));
+      if (!challenger || challenger.status !== 'available' || !target || target.status !== 'available') {
+        return send(socket, { type: 'ERROR', message: 'Deze speler is niet meer beschikbaar.' });
+      }
+      send(target.socket, { type: 'CHALLENGE_RECEIVED', fromToken: token, fromName: name });
+      send(socket, { type: 'CHALLENGE_SENT', targetName: target.name });
+    }
+
+    if (data.type === 'ACCEPT_CHALLENGE') {
+      const accepter = presence.get(token);
+      const challenger = presence.get(String(data.challengerToken || ''));
+      if (!accepter || accepter.status !== 'available' || !challenger || challenger.status !== 'available') {
+        return send(socket, { type: 'ERROR', message: 'De uitnodiging is niet meer geldig.' });
+      }
+      createMatchedRoom(challenger, accepter);
+    }
+
+    if (data.type === 'DECLINE_CHALLENGE') {
+      const challenger = presence.get(String(data.challengerToken || ''));
+      if (challenger) send(challenger.socket, { type: 'CHALLENGE_DECLINED', byName: name });
+    }
 
     if (data.type === 'CREATE_ROOM') {
       leave(socket, false);
@@ -91,6 +159,7 @@ wss.on('connection', (socket) => {
       rooms.set(code, room);
       socket.playerToken = token;
       socket.roomCode = code;
+      setPresence(socket, name, token, 'busy');
       publish(room);
     }
 
@@ -115,11 +184,15 @@ wss.on('connection', (socket) => {
       room.cleanupTimer = null;
       socket.playerToken = token;
       socket.roomCode = code;
+      setPresence(socket, name, token, 'busy');
       publish(room);
       if (room.state) send(socket, { type: 'GAME_STATE', state: room.state });
     }
 
-    if (data.type === 'LEAVE_ROOM') leave(socket);
+    if (data.type === 'LEAVE_ROOM') {
+      leave(socket);
+      setPresence(socket, name, token, 'available');
+    }
 
     const room = rooms.get(socket.roomCode);
     if (!room) return;
@@ -172,7 +245,19 @@ wss.on('connection', (socket) => {
       publish(room);
     }
   });
-  socket.on('close', () => leave(socket));
+  socket.on('close', () => {
+    leave(socket);
+    if (presence.get(socket.playerToken)?.socket === socket) presence.delete(socket.playerToken);
+    publishPresence();
+  });
 });
+
+setInterval(() => {
+  const limit = Date.now() - 45000;
+  for (const [token, player] of presence) {
+    if (player.seenAt < limit || player.socket.readyState !== WebSocket.OPEN) presence.delete(token);
+  }
+  publishPresence();
+}, 15000).unref();
 
 server.listen(port, () => console.log(`Snooker Online luistert op poort ${port}`));

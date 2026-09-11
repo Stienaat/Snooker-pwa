@@ -12,13 +12,15 @@ function createPlayerToken() {
 }
 
 export class OnlineLobby {
-  constructor({ status, message, onRoom, onLeave, onReady, onGameEvent }) {
+  constructor({ status, message, onRoom, onLeave, onReady, onGameEvent, onPresence, onChallenge }) {
     this.onStatus = status;
     this.onMessage = message;
     this.onRoom = onRoom;
     this.onLeave = onLeave;
     this.onReady = onReady;
     this.onGameEvent = onGameEvent;
+    this.onPresence = onPresence;
+    this.onChallenge = onChallenge;
     this.socket = null;
     this.playerName = '';
     this.roomCode = '';
@@ -27,6 +29,10 @@ export class OnlineLobby {
     this.readyKey = '';
     this.manualLeave = false;
     this.reconnectTimer = 0;
+    this.presenceStatus = '';
+    this.heartbeatTimer = setInterval(() => {
+      if (this.presenceStatus) this.send('HEARTBEAT', { status: this.presenceStatus });
+    }, 15000);
     localStorage.setItem('snooker-player-token', this.playerToken);
   }
 
@@ -66,7 +72,7 @@ export class OnlineLobby {
       socket.addEventListener('close', () => {
         this.socket = null;
         this.connecting = null;
-        if (this.roomCode && !this.manualLeave) {
+        if ((this.roomCode || this.presenceStatus) && !this.manualLeave) {
           this.onStatus('OPNIEUW VERBINDEN…');
           this.onMessage('VERBINDING VERBROKEN');
           this.scheduleReconnect();
@@ -84,6 +90,7 @@ export class OnlineLobby {
     if (!this.playerName) throw new Error('Vul eerst uw naam in.');
     this.requestedSeat = 'player1';
     await this.connect();
+    this.presenceStatus = 'busy';
     this.send('CREATE_ROOM');
   }
 
@@ -95,16 +102,41 @@ export class OnlineLobby {
     if (this.roomCode.length !== 6) throw new Error('Vul een geldige kamercode in.');
     this.requestedSeat = 'player2';
     await this.connect();
+    this.presenceStatus = 'busy';
     this.send('JOIN_ROOM', { roomCode: this.roomCode });
   }
 
+  async setPresence(name, status = 'available') {
+    const cleaned = cleanName(name);
+    if (!cleaned) return;
+    this.manualLeave = false;
+    this.playerName = cleaned;
+    this.presenceStatus = status;
+    await this.connect();
+    this.send('PRESENCE', { status });
+  }
+
+  challenge(targetToken) {
+    this.requestedSeat = 'player1';
+    this.send('CHALLENGE', { targetToken });
+  }
+
+  acceptChallenge(challengerToken) {
+    this.requestedSeat = 'player2';
+    this.send('ACCEPT_CHALLENGE', { challengerToken });
+  }
+
+  declineChallenge(challengerToken) {
+    this.send('DECLINE_CHALLENGE', { challengerToken });
+  }
+
   leave() {
-    this.manualLeave = true;
     clearTimeout(this.reconnectTimer);
     if (this.socket?.readyState === WebSocket.OPEN) this.send('LEAVE_ROOM');
     this.roomCode = '';
     this.readyKey = '';
-    this.socket?.close();
+    this.presenceStatus = 'available';
+    this.send('PRESENCE', { status: 'available' });
     this.onLeave();
   }
 
@@ -114,7 +146,8 @@ export class OnlineLobby {
       if (this.manualLeave || !this.roomCode) return;
       try {
         await this.connect();
-        this.send('JOIN_ROOM', { roomCode: this.roomCode });
+        if (this.roomCode) this.send('JOIN_ROOM', { roomCode: this.roomCode });
+        else if (this.presenceStatus) this.send('PRESENCE', { status: this.presenceStatus });
       } catch {
         this.scheduleReconnect();
       }
@@ -147,8 +180,13 @@ export class OnlineLobby {
       this.onMessage(data.message || 'Er ging iets mis.');
       return;
     }
+    if (data.type === 'PRESENCE_LIST') this.onPresence?.(data.players || []);
+    if (data.type === 'CHALLENGE_RECEIVED') this.onChallenge?.({ token: data.fromToken, name: data.fromName });
+    if (data.type === 'CHALLENGE_SENT') this.onMessage(`UITDAGING VERSTUURD NAAR ${data.targetName.toUpperCase()}`);
+    if (data.type === 'CHALLENGE_DECLINED') this.onMessage(`${data.byName.toUpperCase()} HEEFT GEWEIGERD`);
     if (data.type === 'ROOM_STATE') {
       this.roomCode = data.roomCode;
+      this.presenceStatus = 'busy';
       const opponent = data.players.find((player) => player.token !== this.playerToken);
       this.onStatus(opponent ? `VERBONDEN MET ${opponent.name}` : 'WACHT OP TEGENSTANDER');
       this.onMessage(opponent ? 'DE TAFEL IS KLAAR' : 'DEEL DE KAMERCODE');

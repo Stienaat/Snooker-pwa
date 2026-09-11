@@ -6,7 +6,7 @@ Afzonderlijke webversie van Snooker door FS-Creations.
 
 - installeerbare PWA met offline cache;
 - responsieve tafel volgens 3569 × 1778 mm;
-- startmenu voor 'Solo', 'Tegen Phone' en 'Scholing';
+- startmenu voor Solo, Tegen Phone en Scholing;
 - lege starttafel en officiële beginopstelling;
 - uniforme spelbalk met Effect, Hulp, Reset, README en Exit;
 - draaibare tweekleurige keu en fijne richtlijn;
@@ -61,6 +61,12 @@ Afzonderlijke webversie van Snooker door FS-Creations.
   naar de tegenstander gestuurd;
 - een tijdelijke WebSocket-onderbreking probeert automatisch opnieuw te
   verbinden; zetel en laatst bevestigde speltoestand blijven 60 seconden bewaard;
+- gekende spelers melden zich bij het openen automatisch aan; de server houdt
+  met heartbeats bij wie beschikbaar of in een partij is en verwijdert gesloten
+  of verbroken sessies uit de lijst;
+- beschikbare onbekende spelers verschijnen in het online-menu en kunnen met
+  één tik worden uitgedaagd; AANNEMEN maakt automatisch een privékamer voor de
+  uitdager en de ontvanger, WEIGEREN meldt dit aan de uitdager;
 - geschikt als basis voor telefoon, tablet en pc.
 
 ## Starten voor ontwikkeling

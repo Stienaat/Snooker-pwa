@@ -1,5 +1,5 @@
-import { SnookerTable } from './table.js?v=29';
-import { OnlineLobby } from './online.js?v=29';
+import { SnookerTable } from './table.js?v=30';
+import { OnlineLobby } from './online.js?v=30';
 
 const canvas = document.querySelector('#table');
 const startMenu = document.querySelector('#start-menu');
@@ -20,6 +20,10 @@ const activeRoomCode = document.querySelector('#active-room-code');
 const opponentName = document.querySelector('#opponent-name');
 const playerNameInput = document.querySelector('#player-name');
 const roomCodeInput = document.querySelector('#room-code');
+const availablePlayers = document.querySelector('#available-players');
+const challengeBox = document.querySelector('#challenge-box');
+const challengeText = document.querySelector('#challenge-text');
+let currentChallenge = null;
 
 playerNameInput.value = localStorage.getItem('snooker-player-name') || '';
 
@@ -36,6 +40,31 @@ const lobby = new OnlineLobby({
     onlineStatus.textContent = 'OFFLINE';
     onlineMessage.textContent = '';
     roomInfo.hidden = true;
+  },
+  onPresence: (players) => {
+    const available = players.filter((player) =>
+      player.token !== lobby.playerToken && player.status === 'available'
+    );
+    availablePlayers.replaceChildren();
+    if (!available.length) {
+      const empty = document.createElement('span');
+      empty.textContent = 'NOG NIEMAND BESCHIKBAAR';
+      availablePlayers.append(empty);
+      return;
+    }
+    for (const player of available) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.dataset.challenge = player.token;
+      button.textContent = player.name.toUpperCase();
+      button.setAttribute('aria-label', `Daag ${player.name} uit`);
+      availablePlayers.append(button);
+    }
+  },
+  onChallenge: ({ token, name }) => {
+    currentChallenge = { token, name };
+    challengeText.textContent = `${name.toUpperCase()} WIL MET U SPELEN`;
+    challengeBox.hidden = false;
   },
   onReady: ({ seat, turnSeat, player1Name, player2Name }) => {
     table.startOnline({
@@ -88,6 +117,7 @@ function showReadme() { readme.hidden = false; }
 function hideReadme() { readme.hidden = true; }
 
 function startGame(mode, level = null) {
+  lobby.setPresence(playerNameInput.value, 'busy').catch(() => {});
   table.start(mode, level);
   guideButton.textContent = mode === 'school' ? 'HULP EXTRA' : 'HULP AAN';
   newTrainingButton.hidden = mode !== 'school';
@@ -106,19 +136,23 @@ function exitGame() {
   levelMenu.hidden = true;
   onlineMenu.hidden = true;
   hideReadme();
+  lobby.setPresence(playerNameInput.value, 'available').catch(() => {});
 }
 
 document.addEventListener('click', (event) => {
-  const control = event.target.closest('[data-mode], [data-level], [data-action]');
+  const control = event.target.closest('[data-mode], [data-level], [data-action], [data-challenge]');
   if (!control) return;
-  const { mode, level, action } = control.dataset;
+  const { mode, level, action, challenge } = control.dataset;
+  if (challenge) lobby.challenge(challenge);
   if (mode === 'computer' && !control.disabled) {
     startMenu.hidden = true;
     levelMenu.hidden = false;
   } else if (mode === 'online' && !control.disabled) {
     startMenu.hidden = true;
     onlineMenu.hidden = false;
-    onlineMessage.textContent = 'MAAK EEN KAMER OF VOER EEN CODE IN';
+    const name = playerNameInput.value.trim();
+    onlineMessage.textContent = name ? 'KIES EEN SPELER OF MAAK EEN PRIVÉKAMER' : 'VUL EERST UW NAAM IN';
+    if (name) lobby.setPresence(name, 'available').catch((error) => { onlineMessage.textContent = error.message; });
   } else if (mode && !control.disabled) {
     startGame(mode);
   }
@@ -136,6 +170,16 @@ document.addEventListener('click', (event) => {
     const name = playerNameInput.value;
     localStorage.setItem('snooker-player-name', name.trim());
     lobby.join(name, roomCodeInput.value).catch((error) => { onlineMessage.textContent = error.message; });
+  }
+  if (action === 'accept-challenge' && currentChallenge) {
+    lobby.acceptChallenge(currentChallenge.token);
+    currentChallenge = null;
+    challengeBox.hidden = true;
+  }
+  if (action === 'decline-challenge' && currentChallenge) {
+    lobby.declineChallenge(currentChallenge.token);
+    currentChallenge = null;
+    challengeBox.hidden = true;
   }
   if (action === 'leave-online') {
     lobby.leave();
@@ -175,8 +219,18 @@ roomCodeInput.addEventListener('input', () => {
   roomCodeInput.value = roomCodeInput.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
 });
 
+playerNameInput.addEventListener('change', () => {
+  const name = playerNameInput.value.trim();
+  localStorage.setItem('snooker-player-name', name);
+  if (name && table.mode !== 'online') lobby.setPresence(name, table.mode ? 'busy' : 'available').catch(() => {});
+});
+
 table.showEmptyTable();
 
+if (playerNameInput.value.trim()) {
+  lobby.setPresence(playerNameInput.value, 'available').catch(() => {});
+}
+
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js?v=29'));
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js?v=30'));
 }
