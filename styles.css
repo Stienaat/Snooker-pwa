@@ -330,7 +330,8 @@ footer a { color: #c3d0c5; }
 .bottom-menu button { font-size: clamp(.62rem, 1.7vmin, 1rem); padding: .75rem .2rem; }
 
 .online-overlay .score-placeholder {
-  margin-top: 18px;
+  transform: translateY(20px);
+
 }
 
 #available-players button,
@@ -347,5 +348,5 @@ footer a { color: #c3d0c5; }
   .cloth-overlay { grid-template-rows: .7fr auto .8fr; }
   .menu { display: grid; grid-template-columns: repeat(2, 1fr); width: min(62vw, 600px); }
   .menu button:last-child { grid-column: 1 / -1; }
-  footer { padding-bottom: 2px; }
+  footer { padding-bottom: 10px; }
 }
