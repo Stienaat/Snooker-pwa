@@ -157,6 +157,10 @@ button:disabled { opacity: .35; cursor: default; }
   letter-spacing: 0.08em;
 }
 
+.online-panel [data-action="toggle-code"] {
+  margin-top: clamp(35px, 13vh, 90px);
+}
+
 #available-players {
   display: grid;
   width: min(100%, 25rem);
@@ -328,6 +332,20 @@ footer a { color: #c3d0c5; }
 .bottom-menu.school { grid-template-columns: repeat(6, 1fr); }
 
 .bottom-menu button { font-size: clamp(.62rem, 1.7vmin, 1rem); padding: .75rem .2rem; }
+
+.online-overlay .score-placeholder {
+  margin-top: 18px;
+}
+
+#available-players button,
+#available-players .online-player {
+  width: min(220px, 100%);
+  margin-inline: auto;
+}
+
+.online-message {
+  font-size: clamp(0.8rem, 2.5vmin, 1rem);
+}
 
 @media (orientation: landscape) and (max-height: 600px) {
   .cloth-overlay { grid-template-rows: .7fr auto .8fr; }
