@@ -25,6 +25,7 @@ const roomCodeInput = document.querySelector('#room-code');
 const availablePlayers = document.querySelector('#available-players');
 const challengeBox = document.querySelector('#challenge-box');
 const challengeText = document.querySelector('#challenge-text');
+const codePanel = document.querySelector('#code-panel');
 let currentChallenge = null;
 let installPrompt = null;
 
@@ -59,26 +60,54 @@ const lobby = new OnlineLobby({
     onlineMessage.textContent = '';
     roomInfo.hidden = true;
   },
-  onPresence: (players) => {
-    const available = players.filter((player) =>
-      player.token !== lobby.playerToken && player.status === 'available'
+onPresence: (players) => {
+    const others = players.filter(
+        player => player.token !== lobby.playerToken
     );
+
     availablePlayers.replaceChildren();
-    if (!available.length) {
-      const empty = document.createElement('span');
-      empty.textContent = 'NOG NIEMAND BESCHIKBAAR';
-      availablePlayers.append(empty);
-      return;
+
+    if (!others.length) {
+        const empty = document.createElement('span');
+        empty.textContent = 'NOG NIEMAND ONLINE';
+        availablePlayers.append(empty);
+        return;
     }
-    for (const player of available) {
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.dataset.challenge = player.token;
-      button.textContent = player.name.toUpperCase();
-      button.setAttribute('aria-label', `Daag ${player.name} uit`);
-      availablePlayers.append(button);
+
+    for (const player of others) {
+        const isAvailable = player.status === 'available';
+
+        const row = document.createElement(
+            isAvailable ? 'button' : 'div'
+        );
+
+        if (isAvailable) {
+            row.type = 'button';
+            row.dataset.challenge = player.token;
+            row.setAttribute(
+                'aria-label',
+                `Daag ${player.name} uit`
+            );
+        } else {
+            row.className = 'online-player';
+            row.setAttribute(
+                'aria-label',
+                `${player.name} is in een partij`
+            );
+        }
+
+        const dot = document.createElement('i');
+        dot.className =
+            `presence-dot${isAvailable ? ' available' : ''}`;
+        dot.setAttribute('aria-hidden', 'true');
+
+        const name = document.createElement('b');
+        name.textContent = player.name.toUpperCase();
+
+        row.append(dot, name);
+        availablePlayers.append(row);
     }
-  },
+},
   onChallenge: ({ token, name }) => {
     currentChallenge = { token, name };
     challengeText.textContent = `${name.toUpperCase()} WIL MET U SPELEN`;
@@ -203,6 +232,7 @@ document.addEventListener('click', (event) => {
     lobby.leave();
     onlineMenu.hidden = true;
     startMenu.hidden = false;
+    codePanel.hidden = true;
   }
   if (action === 'copy-room' && activeRoomCode.textContent !== '------') {
     navigator.clipboard?.writeText(activeRoomCode.textContent)
@@ -241,6 +271,9 @@ document.addEventListener('click', (event) => {
     guideButton.textContent = 'HULP EXTRA';
   }
   if (action === 'exit') exitGame();
+  if (action === 'toggle-code') {
+    codePanel.hidden = !codePanel.hidden;
+}
 });
 
 window.addEventListener('resize', () => table.resize());

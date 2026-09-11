@@ -43,29 +43,62 @@
         <h1>ONLINE</h1>
       </div>
 
-      <div class="online-panel">
-        <label for="player-name">NAAM</label>
-        <input id="player-name" maxlength="20" autocomplete="nickname" placeholder="UW NAAM">
+<label for="player-name">UW NAAM</label>
 
-        <section class="presence-panel" aria-label="Beschikbare spelers">
-          <strong>BESCHIKBARE SPELERS</strong>
-          <div id="available-players"><span>NOG NIEMAND ONLINE</span></div>
-        </section>
+<input
+    id="player-name"
+    maxlength="20"
+    autocomplete="nickname"
+    placeholder="UW NAAM"
+>
 
-        <section id="challenge-box" class="challenge-box" hidden>
-          <strong id="challenge-text">IEMAND WIL MET U SPELEN</strong>
-          <div>
-            <button type="button" data-action="accept-challenge">AANNEMEN</button>
-            <button type="button" data-action="decline-challenge">WEIGEREN</button>
-          </div>
-        </section>
+<section class="presence-panel" aria-label="Spelers online">
+    <strong>SPELERS ONLINE</strong>
 
-        <button type="button" data-action="create-room">MAAK KAMER</button>
+    <div id="available-players">
+        <span>NOG NIEMAND ONLINE</span>
+    </div>
+</section>
 
-        <div class="join-row">
-          <input id="room-code" maxlength="6" inputmode="text" autocomplete="off" placeholder="KAMERCODE">
-          <button type="button" data-action="join-room">DEELNEMEN</button>
-        </div>
+<section id="challenge-box" class="challenge-box" hidden>
+    <strong id="challenge-text">
+        IEMAND WIL MET U SPELEN
+    </strong>
+
+    <div>
+        <button type="button" data-action="accept-challenge">
+            AANNEMEN
+        </button>
+
+        <button type="button" data-action="decline-challenge">
+            WEIGEREN
+        </button>
+    </div>
+</section>
+
+<button type="button" data-action="toggle-code">
+    SPELEN MET CODE
+</button>
+
+<section id="code-panel" class="code-panel" hidden>
+    <button type="button" data-action="create-room">
+        MAAK CODE
+    </button>
+
+    <div class="join-row">
+        <input
+            id="room-code"
+            maxlength="6"
+            inputmode="text"
+            autocomplete="off"
+            placeholder="KAMERCODE"
+        >
+
+        <button type="button" data-action="join-room">
+            DEELNEMEN
+        </button>
+    </div>
+</section>
 
         <div id="room-info" class="room-info" hidden>
           <span>KAMER</span>
