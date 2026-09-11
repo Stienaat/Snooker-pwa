@@ -198,7 +198,7 @@ document.addEventListener('click', (event) => {
     startMenu.hidden = true;
     onlineMenu.hidden = false;
     const name = playerNameInput.value.trim();
-    onlineMessage.textContent = name ? 'KIES EEN (beschikbare) SPELER OF SPEEL MET CODE';
+    onlineMessage.textContent = name ? 'KIES EEN (beschikbare) SPELER OF SPEEL MET CODE'
     if (name) lobby.setPresence(name, 'available').catch((error) => { onlineMessage.textContent = error.message; });
   } else if (mode && !control.disabled) {
     startGame(mode);
