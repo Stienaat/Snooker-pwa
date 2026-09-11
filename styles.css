@@ -158,7 +158,7 @@ button:disabled { opacity: .35; cursor: default; }
 }
 
 .online-panel [data-action="toggle-code"] {
-  margin-top: clamp(35px, 13vh, 90px);
+  margin-top: clamp(45px, 13vh, 120px);
 }
 
 #available-players {
