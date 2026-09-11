@@ -194,14 +194,29 @@ document.addEventListener('click', (event) => {
   if (mode === 'computer' && !control.disabled) {
     startMenu.hidden = true;
     levelMenu.hidden = false;
-  } else if (mode === 'online' && !control.disabled) {
+    } else if (mode === 'online' && !control.disabled) {
     startMenu.hidden = true;
     onlineMenu.hidden = false;
+
     const name = playerNameInput.value.trim();
-    onlineMessage.textContent = name ? 'KIES EEN (beschikbare) SPELER OF SPEEL MET CODE'
-    if (name) lobby.setPresence(name, 'available').catch((error) => { onlineMessage.textContent = error.message; });
+
+    onlineMessage.textContent = name
+      ? 'KIES EEN BESCHIKBARE SPELER OF SPEEL MET CODE'
+      : 'VUL EERST UW NAAM IN';
+
+    if (name) {
+      lobby
+        .setPresence(name, 'available')
+        .catch((error) => {
+          onlineMessage.textContent = error.message;
+        });
+    }
   } else if (mode && !control.disabled) {
     startGame(mode);
+  }
+
+  if (level) {
+    startGame('computer', level);
   }
   if (level) startGame('computer', level);
   if (action === 'back-start') {
