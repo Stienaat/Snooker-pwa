@@ -75,41 +75,70 @@ button {
 button:hover, button:focus-visible { color: #c1e6c9; outline: none; }
 button:disabled { opacity: .35; cursor: default; }
 
+.online-overlay {
+    z-index: 50;
+    pointer-events: auto;
+    grid-template-rows: auto 1fr;
+    align-content: start;
+    overflow-y: auto;
+}
+
 .online-panel {
-  width: min(78vw, 460px);
-  display: grid;
-  gap: clamp(8px, 1.5vmin, 15px);
-  justify-items: center;
-  pointer-events: auto;
+    width: min(88vw, 480px);
+    margin: 0 auto;
+    padding: clamp(8px, 2vh, 18px) 0 24px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+
+    gap: clamp(8px, 1.7vh, 16px);
+
+    color: #91c99f;
+    pointer-events: auto;
+}
+
+.online-panel label,
+.online-panel button,
+.online-panel input {
+    pointer-events: auto;
 }
 
 .online-panel label {
-  font-weight: 750;
-  letter-spacing: .08em;
+    text-align: center;
 }
 
-.online-panel input {
-  width: 100%;
-  border: 0;
-  border-bottom: 2px solid rgb(138 202 155 / .7);
-  border-radius: 0;
-  padding: .55rem .7rem;
-  background: rgb(8 65 34 / .35);
-  color: #c1e6c9;
-  font: inherit;
-  font-size: clamp(1rem, 2.6vmin, 1.35rem);
-  font-weight: 700;
-  letter-spacing: .08em;
-  text-align: center;
-  text-transform: uppercase;
-  outline: none;
-  touch-action: manipulation;
-  user-select: text;
-  -webkit-user-select: text;
+.presence-panel {
+    width: 100%;
+    min-height: 3.5rem;
+    margin-top: 4px;
+    text-align: center;
 }
 
-.online-panel input:focus { border-color: #c1e6c9; }
-.online-panel input::placeholder { color: rgb(138 202 155 / .55); }
+#available-players {
+    display: grid;
+    width: min(100%, 25rem);
+    margin: 6px auto 0;
+    gap: 4px;
+}
+
+.code-panel {
+    width: 100%;
+    display: grid;
+    gap: 8px;
+}
+
+.code-panel[hidden] {
+    display: none;
+}
+
+.online-message {
+    min-height: 1.3em;
+    margin: 0;
+    text-align: center;
+    opacity: 0.85;
+}
 
 .join-row {
   width: 100%;
