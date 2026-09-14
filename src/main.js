@@ -348,9 +348,21 @@ document.addEventListener('click', (event) => {
     demoMenu.hidden = true;
   }
 
-  if (action === 'exit') {
+if (action === 'exit') {
+  const confirmed = window.confirm(
+    'Bent u zeker dat u het spel wilt verlaten?'
+  );
+
+  if (confirmed) {
     exitGame();
   }
+}
+
+if (action === 'training-pro') {
+  table.playTrainingPro();
+  guideButton.textContent = 'HULP EXTRA';
+}
+
 });
 
 window.addEventListener('resize', () => table.resize());

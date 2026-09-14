@@ -401,9 +401,54 @@ const TRAINING_GUIDES = [
           y: 1180,
           radius: 145
         }
+        },
+        {
+        demo: 'DEMO 24',
+        category: 'ONTSNAPPEN',
+        name: 'VIA ÉÉN BAND',
+        instruction: 'Speel wit via de onderste band en raak rood.',
+        result: 'Wit raakt eerst één band en daarna de rode bal.',
+        topSpin: 0,
+        sideSpin: 0,
+        power: .50,
+        powerName: 'MIDDELHARD',
+        aimAngle: .769,
+        requiresRedPot: false
+      },
+      {
+        demo: 'DEMO 25',
+        category: 'ONTSNAPPEN',
+        name: 'VIA TWEE BANDEN',
+        instruction: 'Speel via de onderste en bovenste band naar rood.',
+        result: 'Wit raakt twee banden voordat rood wordt geraakt.',
+        topSpin: 0,
+        sideSpin: 0,
+        power: .86,
+        powerName: 'HARD',
+        aimAngle: 1.262,
+        requiresRedPot: false
+      },
+      {
+        demo: 'DEMO 26',
+        category: 'VERDEDIGEN',
+        name: 'DUNNE SAFETY',
+        instruction: 'Raak rood uiterst dun en laat wit naar de baulk lopen.',
+        result: 'Rood blijft ver weg en wit eindigt veilig in de baulk.',
+        topSpin: 0,
+        sideSpin: 0,
+        power: .55,
+        powerName: 'MIDDEL',
+        aimAngle: 3.070,
+        requiresRedPot: false,
+        target: {
+          x: 550,
+          y: 1350,
+          radius: 190
         }
+      }
 
 ];
+
 const COLOR_SPOTS = {
   yellow: { x: 737, y: TABLE_WIDTH / 2 + 292 },
   green: { x: 737, y: TABLE_WIDTH / 2 - 292 },
@@ -412,6 +457,409 @@ const COLOR_SPOTS = {
   pink: { x: TABLE_LENGTH * .75, y: TABLE_WIDTH / 2 },
   black: { x: TABLE_LENGTH - 324, y: TABLE_WIDTH / 2 }
 };
+
+function predictedCueApproach(
+  white,
+  startVx,
+  startVy,
+  balls,
+  initialSideSpin = 0
+) {
+  const points = [{ x: white.x, y: white.y }];
+  const drag = -Math.log(.44);
+  const cushionRestitution = .83;
+
+  let x = white.x;
+  let y = white.y;
+  let vx = startVx;
+  let vy = startVy;
+  let sideSpin = initialSideSpin;
+
+  for (let bounce = 0; bounce < 10; bounce += 1) {
+    const speed = Math.hypot(vx, vy);
+    if (speed < 7) break;
+
+    const ux = vx / speed;
+    const uy = vy / speed;
+    const walls = [];
+
+    if (ux > 0) {
+      walls.push({
+        distance:
+          (TABLE_LENGTH - BALL_RADIUS - x) / ux,
+        wall: 'right'
+      });
+    }
+
+    if (ux < 0) {
+      walls.push({
+        distance:
+          (BALL_RADIUS - x) / ux,
+        wall: 'left'
+      });
+    }
+
+    if (uy > 0) {
+      walls.push({
+        distance:
+          (TABLE_WIDTH - BALL_RADIUS - y) / uy,
+        wall: 'bottom'
+      });
+    }
+
+    if (uy < 0) {
+      walls.push({
+        distance:
+          (BALL_RADIUS - y) / uy,
+        wall: 'top'
+      });
+    }
+
+    const edge = walls
+      .filter((item) => item.distance > .01)
+      .sort((a, b) => a.distance - b.distance)[0];
+
+    const stopDistance = Math.max(
+      0,
+      (speed - 7) / drag
+    );
+
+    const maximumTravel = Math.min(
+      stopDistance,
+      edge?.distance ?? Infinity
+    );
+
+    /*
+     * Zoek de eerste objectbal op dit deel van de baan.
+     * Voor een botsing moeten de middelpunten elkaar tot
+     * tweemaal de balstraal naderen.
+     */
+    let nearestBall = null;
+    const collisionRadius = BALL_RADIUS * 2;
+
+    for (const ball of balls) {
+      if (
+        ball === white ||
+        ball.kind === 'white' ||
+        ball.potted
+      ) continue;
+
+      const offsetX = ball.x - x;
+      const offsetY = ball.y - y;
+      const projection =
+        offsetX * ux + offsetY * uy;
+
+      if (projection <= .01) continue;
+
+      const perpendicularSquared =
+        offsetX * offsetX +
+        offsetY * offsetY -
+        projection * projection;
+
+      if (
+        perpendicularSquared >
+        collisionRadius * collisionRadius
+      ) continue;
+
+      const entryDistance =
+        projection -
+        Math.sqrt(
+          Math.max(
+            0,
+            collisionRadius * collisionRadius -
+            perpendicularSquared
+          )
+        );
+
+      if (
+        entryDistance > .01 &&
+        entryDistance <= maximumTravel &&
+        (
+          !nearestBall ||
+          entryDistance < nearestBall.distance
+        )
+      ) {
+        nearestBall = {
+          ball,
+          distance: entryDistance
+        };
+      }
+    }
+
+    const pocketHit = predictedPocketHit(
+      x,
+      y,
+      ux,
+      uy,
+      maximumTravel
+    );
+
+    if (
+      pocketHit &&
+      (
+        !nearestBall ||
+        pocketHit.distance < nearestBall.distance
+      )
+    ) {
+      points.push({
+        x: pocketHit.pocket.x,
+        y: pocketHit.pocket.y
+      });
+
+      return {
+        points,
+        hit: null,
+        potted: true
+      };
+    }
+
+    if (nearestBall) {
+      const contactX =
+        x + ux * nearestBall.distance;
+      const contactY =
+        y + uy * nearestBall.distance;
+
+      points.push({
+        x: contactX,
+        y: contactY
+      });
+
+      return {
+        points,
+        hit: {
+          ball: nearestBall.ball,
+          contactX,
+          contactY,
+          directionX: ux,
+          directionY: uy,
+          impactSpeed: Math.max(
+            0,
+            speed - drag * nearestBall.distance
+          ),
+          sideSpin
+        },
+        potted: false
+      };
+    }
+
+    if (!edge || stopDistance <= edge.distance) {
+      x += ux * stopDistance;
+      y += uy * stopDistance;
+      points.push({ x, y });
+
+      return {
+        points,
+        hit: null,
+        potted: false
+      };
+    }
+
+    x += ux * edge.distance;
+    y += uy * edge.distance;
+    points.push({ x, y });
+
+    const speedAtWall = Math.max(
+      7,
+      speed - drag * edge.distance
+    );
+
+    vx = ux * speedAtWall;
+    vy = uy * speedAtWall;
+
+    const speedRatio = Math.max(
+      .0001,
+      Math.min(1, speedAtWall / speed)
+    );
+
+    const travelTime =
+      -Math.log(speedRatio) / drag;
+
+    sideSpin *= Math.pow(.52, travelTime);
+
+    if (edge.wall === 'left') {
+      vx = Math.abs(vx) * cushionRestitution;
+      vy -= sideSpin * Math.abs(vx) * .18;
+      x = BALL_RADIUS + .02;
+    } else if (edge.wall === 'right') {
+      vx = -Math.abs(vx) * cushionRestitution;
+      vy += sideSpin * Math.abs(vx) * .18;
+      x = TABLE_LENGTH - BALL_RADIUS - .02;
+    } else if (edge.wall === 'top') {
+      vy = Math.abs(vy) * cushionRestitution;
+      vx += sideSpin * Math.abs(vy) * .18;
+      y = BALL_RADIUS + .02;
+    } else {
+      vy = -Math.abs(vy) * cushionRestitution;
+      vx -= sideSpin * Math.abs(vy) * .18;
+      y = TABLE_WIDTH - BALL_RADIUS - .02;
+    }
+  }
+
+  return {
+    points,
+    hit: null,
+    potted: false
+  };
+}
+
+function drawTablePath(ctx, g, points) {
+  if (!points || points.length < 2) return;
+
+  ctx.beginPath();
+
+  ctx.moveTo(
+    g.x + points[0].x * g.scale,
+    g.y + points[0].y * g.scale
+  );
+
+  for (let index = 1; index < points.length; index += 1) {
+    ctx.lineTo(
+      g.x + points[index].x * g.scale,
+      g.y + points[index].y * g.scale
+    );
+  }
+
+  ctx.stroke();
+}
+
+function predictedBallPath(
+  startX,
+  startY,
+  startVx,
+  startVy,
+  initialSideSpin = 0
+) {
+  const points = [{ x: startX, y: startY }];
+  const drag = -Math.log(.44);
+  const cushionRestitution = .83;
+
+  let x = startX;
+  let y = startY;
+  let vx = startVx;
+  let vy = startVy;
+  let sideSpin = initialSideSpin;
+
+  for (let bounce = 0; bounce < 10; bounce += 1) {
+    const speed = Math.hypot(vx, vy);
+    if (speed < 7) break;
+
+    const ux = vx / speed;
+    const uy = vy / speed;
+    const distances = [];
+
+    if (ux > 0) {
+      distances.push({
+        distance:
+          (TABLE_LENGTH - BALL_RADIUS - x) / ux,
+        wall: 'right'
+      });
+    }
+
+    if (ux < 0) {
+      distances.push({
+        distance:
+          (BALL_RADIUS - x) / ux,
+        wall: 'left'
+      });
+    }
+
+    if (uy > 0) {
+      distances.push({
+        distance:
+          (TABLE_WIDTH - BALL_RADIUS - y) / uy,
+        wall: 'bottom'
+      });
+    }
+
+    if (uy < 0) {
+      distances.push({
+        distance:
+          (BALL_RADIUS - y) / uy,
+        wall: 'top'
+      });
+    }
+
+    const edge = distances
+      .filter((item) => item.distance > .01)
+      .sort((a, b) => a.distance - b.distance)[0];
+
+    const stopDistance = Math.max(
+      0,
+      (speed - 7) / drag
+    );
+
+    const maximumTravel = Math.min(
+      stopDistance,
+      edge?.distance ?? Infinity
+    );
+
+    const pocketHit = predictedPocketHit(
+      x,
+      y,
+      ux,
+      uy,
+      maximumTravel
+    );
+
+    if (pocketHit) {
+      points.push({
+        x: pocketHit.pocket.x,
+        y: pocketHit.pocket.y
+      });
+
+      break;
+    }
+
+    if (!edge || stopDistance <= edge.distance) {
+      x += ux * stopDistance;
+      y += uy * stopDistance;
+      points.push({ x, y });
+      break;
+    }
+
+    x += ux * edge.distance;
+    y += uy * edge.distance;
+    points.push({ x, y });
+
+    const speedAtWall = Math.max(
+      7,
+      speed - drag * edge.distance
+    );
+
+    vx = ux * speedAtWall;
+    vy = uy * speedAtWall;
+
+    const speedRatio = Math.max(
+      .0001,
+      Math.min(1, speedAtWall / speed)
+    );
+
+    const travelTime =
+      -Math.log(speedRatio) / drag;
+
+    sideSpin *= Math.pow(.52, travelTime);
+
+    if (edge.wall === 'left') {
+      vx = Math.abs(vx) * cushionRestitution;
+      vy -= sideSpin * Math.abs(vx) * .18;
+      x = BALL_RADIUS + .02;
+    } else if (edge.wall === 'right') {
+      vx = -Math.abs(vx) * cushionRestitution;
+      vy += sideSpin * Math.abs(vx) * .18;
+      x = TABLE_LENGTH - BALL_RADIUS - .02;
+    } else if (edge.wall === 'top') {
+      vy = Math.abs(vy) * cushionRestitution;
+      vx += sideSpin * Math.abs(vy) * .18;
+      y = BALL_RADIUS + .02;
+    } else {
+      vy = -Math.abs(vy) * cushionRestitution;
+      vx -= sideSpin * Math.abs(vy) * .18;
+      y = TABLE_WIDTH - BALL_RADIUS - .02;
+    }
+  }
+
+  return points;
+}
 
 export class SnookerTable {
   constructor(canvas, onStateChange = () => {}) {
@@ -573,6 +1021,47 @@ this.aimAngle =
     this.draw();
     return this.guideVisible;
   }
+  playTrainingPro() {
+  if (
+    this.mode !== 'school' ||
+    this.phase === 'moving'
+  ) return;
+
+  // Zet dezelfde demonstratie opnieuw in de beginpositie.
+  this.reset();
+
+  const guide =
+    TRAINING_GUIDES[
+      this.trainingScenario %
+      TRAINING_GUIDES.length
+    ];
+
+  // Eerst vergrendelen; setPhase kan waarden initialiseren.
+  this.setPhase('locked');
+
+  // Exacte PRO-instellingen.
+  this.aimAngle = guide.aimAngle;
+  this.power = guide.power;
+  this.topSpin = guide.topSpin;
+  this.sideSpin = guide.sideSpin;
+
+  this.effectSelectorOpen = false;
+  this.guideMode = 'extra';
+  this.guideVisible = true;
+
+  // Toon richting, effect, kracht en voorspelling.
+  this.draw();
+
+  // Geef de speler kort tijd om alles te bekijken.
+  window.setTimeout(() => {
+    if (
+      this.mode === 'school' &&
+      this.phase === 'locked'
+    ) {
+      this.shoot();
+    }
+  }, 1200);
+}
 
   toggleEffectSelector() {
     if (this.phase !== 'idle') return;
@@ -635,19 +1124,75 @@ this.aimAngle =
     return { x: event.clientX - rect.left, y: event.clientY - rect.top };
   }
 
-  pointerDown(event) {
-    if (!this.mode || this.phase === 'moving' || this.phase === 'computer' || this.phase === 'waiting' || this.phase === 'disconnected' ||
-        this.currentPlayer === 'phone' || (this.mode === 'online' && this.currentPlayer !== this.online?.seat)) return;
-    const point = this.pointerPosition(event);
-    this.canvas.setPointerCapture(event.pointerId);
-    this.pointer = {
-      id: event.pointerId,
-      start: point,
-      last: point,
-      moved: 0
-    };
-    if (this.phase === 'placing') this.placeWhiteAt(point);
+pointerDown(event) {
+  if (
+    !this.mode ||
+    this.phase === 'moving' ||
+    this.phase === 'computer' ||
+    this.phase === 'waiting' ||
+    this.phase === 'disconnected' ||
+    this.currentPlayer === 'phone' ||
+    (this.mode === 'online' &&
+      this.currentPlayer !== this.online?.seat)
+  ) return;
+
+  const point = this.pointerPosition(event);
+  this.canvas.setPointerCapture(event.pointerId);
+
+  let aimMode = 'coarse';
+
+  /*
+   * Alleen tijdens het richten bepalen we of de speler
+   * de richtlijn zelf heeft aangeraakt.
+   */
+  if (this.phase === 'idle' && !this.effectSelectorOpen) {
+    const white = this.whiteScreenPosition();
+    const directionX = Math.cos(this.aimAngle);
+    const directionY = Math.sin(this.aimAngle);
+
+    const relativeX = point.x - white.x;
+    const relativeY = point.y - white.y;
+
+    // Positie van de aanraking langs de richtlijn.
+    const alongLine =
+      relativeX * directionX +
+      relativeY * directionY;
+
+    // Afstand loodrecht tot de richtlijn.
+    const distanceFromLine = Math.abs(
+      relativeX * directionY -
+      relativeY * directionX
+    );
+
+    const fineLineLength = Math.max(
+      120,
+      Math.min(this.width, this.height) * 0.42
+    );
+
+    const hitDistance =
+      event.pointerType === 'mouse' ? 14 : 28;
+
+    if (
+      alongLine > 15 &&
+      alongLine < fineLineLength &&
+      distanceFromLine < hitDistance
+    ) {
+      aimMode = 'fine';
+    }
   }
+
+  this.pointer = {
+    id: event.pointerId,
+    start: point,
+    last: point,
+    moved: 0,
+    aimMode
+  };
+
+  if (this.phase === 'placing') {
+    this.placeWhiteAt(point);
+  }
+}
 
   pointerMove(event) {
     if (!this.pointer || this.pointer.id !== event.pointerId) return;
@@ -669,8 +1214,9 @@ this.aimAngle =
           this.topSpin /= length;
         }
       } else {
-        const white = this.whiteScreenPosition();
-        const previousAngle = Math.atan2(
+const white = this.whiteScreenPosition();
+
+const previousAngle = Math.atan2(
   this.pointer.last.y - white.y,
   this.pointer.last.x - white.x
 );
@@ -684,21 +1230,19 @@ const rawDifference = normalizeAngle(
   currentAngle - previousAngle
 );
 
-/*
- * Een muis is nauwkeuriger dan een vinger, maar de bewegingen
- * worden door de browser in kleine pixelsprongen aangeleverd.
- * Daarom beweegt de keu slechts een gedeelte van de gemeten hoek.
- */
-const aimSensitivity =
-  event.pointerType === 'mouse' ? 0.28 : 0.42;
+const fineAiming = this.pointer.aimMode === 'fine';
 
-/*
- * Een onverwacht grote sprong wordt begrensd.
- * Dit voorkomt schokken wanneer de vinger of muis dicht bij wit komt.
- */
+const aimSensitivity = fineAiming
+  ? event.pointerType === 'mouse'
+    ? 0.24
+    : 0.34
+  : 1.0;
+
+const maximumStep = fineAiming ? 0.055 : 0.18;
+
 const limitedDifference = Math.max(
-  -0.06,
-  Math.min(0.06, rawDifference)
+  -maximumStep,
+  Math.min(maximumStep, rawDifference)
 );
 
 this.aimAngle += limitedDifference * aimSensitivity;
@@ -764,6 +1308,12 @@ this.aimAngle += limitedDifference * aimSensitivity;
   }
 
   shoot(remote = false) {
+    console.log('SHOT', {
+  angle: this.aimAngle.toFixed(6),
+  power: this.power.toFixed(6),
+  topSpin: this.topSpin.toFixed(6),
+  sideSpin: this.sideSpin.toFixed(6)
+});
     const white = this.balls.find((ball) => ball.kind === 'white');
     if (!white) return;
     // Een gebogen krachtcurve geeft meer regelruimte bij zachte en
@@ -837,35 +1387,83 @@ this.aimAngle += limitedDifference * aimSensitivity;
     this.draw();
   }
 
-  tick(time) {
-    const dt = Math.min(.025, Math.max(0, (time - this.lastTime) / 1000));
-    this.lastTime = time;
-    const maximumSpeed = this.balls.reduce(
-      (maximum, ball) => Math.max(maximum, Math.hypot(ball.vx, ball.vy)),
-      0
-    );
-    const maximumStepDistance = BALL_RADIUS * .45;
-    const steps = Math.max(1, Math.min(24, Math.ceil(maximumSpeed * dt / maximumStepDistance)));
-    const stepDt = dt / steps;
-    for (let step = 0; step < steps; step += 1) this.stepPhysics(stepDt);
+tick(time) {
+  const frameDt = Math.min(
+    .025,
+    Math.max(0, (time - this.lastTime) / 1000)
+  );
 
-    for (const animation of this.potAnimations) animation.age += dt;
-    this.potAnimations = this.potAnimations.filter((animation) => animation.age < .42);
-    this.draw();
-    if (this.mode === 'online' && !this.remoteOnlineShot && time - this.lastOnlineFrameAt >= 40) {
-      this.lastOnlineFrameAt = time;
-      this.online?.onFrame?.({
-        balls: this.balls.map((ball) => ({ ...ball })),
-        potAnimations: this.potAnimations.map((animation) => ({ ...animation }))
-      });
-    }
-    if (this.balls.every((ball) => ball.vx === 0 && ball.vy === 0) && this.potAnimations.length === 0) {
-      const result = this.finishShot();
-      this.continueAfterShot(result);
-      return;
-    }
-    this.animationFrame = requestAnimationFrame((next) => this.tick(next));
+  this.lastTime = time;
+
+  /*
+   * De physics rekent altijd met exact dezelfde tijdstap.
+   * De verversingssnelheid van het scherm heeft daardoor
+   * geen invloed meer op balbanen en botsingen.
+   */
+  const fixedStep = 1 / 120;
+
+  if (!Number.isFinite(this.physicsAccumulator)) {
+    this.physicsAccumulator = 0;
   }
+
+  this.physicsAccumulator += frameDt;
+
+  while (this.physicsAccumulator >= fixedStep) {
+    this.stepPhysics(fixedStep);
+    this.physicsAccumulator -= fixedStep;
+  }
+
+  // Potanimaties hoeven niet natuurkundig deterministisch te zijn.
+  for (const animation of this.potAnimations) {
+    animation.age += frameDt;
+  }
+
+  this.potAnimations =
+    this.potAnimations.filter(
+      (animation) => animation.age < .42
+    );
+
+  this.draw();
+
+  if (
+    this.mode === 'online' &&
+    !this.remoteOnlineShot &&
+    time - this.lastOnlineFrameAt >= 40
+  ) {
+    this.lastOnlineFrameAt = time;
+
+    this.online?.onFrame?.({
+      balls: this.balls.map(
+        (ball) => ({ ...ball })
+      ),
+      potAnimations: this.potAnimations.map(
+        (animation) => ({ ...animation })
+      )
+    });
+  }
+
+  const ballsStopped =
+    this.balls.every(
+      (ball) => ball.vx === 0 && ball.vy === 0
+    );
+
+  if (
+    ballsStopped &&
+    this.potAnimations.length === 0
+  ) {
+    // Geen resterende fractie meenemen naar de volgende stoot.
+    this.physicsAccumulator = 0;
+
+    const result = this.finishShot();
+    this.continueAfterShot(result);
+    return;
+  }
+
+  this.animationFrame =
+    requestAnimationFrame(
+      (next) => this.tick(next)
+    );
+}
 
   stepPhysics(dt) {
     const restitution = .83;
@@ -1472,16 +2070,28 @@ this.aimAngle += limitedDifference * aimSensitivity;
       const startY = center.y + dy * startDistance;
       const endX = center.x + dx * Math.max(startDistance + 40, guideDistance - radius);
       const endY = center.y + dy * Math.max(startDistance + 40, guideDistance - radius);
-      const guideGradient = ctx.createLinearGradient(startX, startY, endX, endY);
-      if (cueLocked) {
-        guideGradient.addColorStop(0, 'rgba(255,112,100,1)');
-        guideGradient.addColorStop(.55, 'rgba(255,92,82,.72)');
-        guideGradient.addColorStop(1, 'rgba(255,82,72,0)');
-      } else {
-        guideGradient.addColorStop(0, 'rgba(245,250,244,.82)');
-        guideGradient.addColorStop(.55, 'rgba(245,250,244,.48)');
-        guideGradient.addColorStop(1, 'rgba(245,250,244,0)');
-      }
+const guideGradient = ctx.createLinearGradient(
+  startX,
+  startY,
+  endX,
+  endY
+);
+
+if (cueLocked) {
+  guideGradient.addColorStop(0, 'rgba(255,112,100,1)');
+  guideGradient.addColorStop(.18, 'rgba(255,102,92,.72)');
+  guideGradient.addColorStop(.38, 'rgba(255,92,82,.28)');
+  guideGradient.addColorStop(.58, 'rgba(255,82,72,.06)');
+  guideGradient.addColorStop(.72, 'rgba(255,82,72,0)');
+  guideGradient.addColorStop(1, 'rgba(255,82,72,0)');
+} else {
+  guideGradient.addColorStop(0, 'rgba(245,250,244,.82)');
+  guideGradient.addColorStop(.18, 'rgba(245,250,244,.60)');
+  guideGradient.addColorStop(.38, 'rgba(245,250,244,.24)');
+  guideGradient.addColorStop(.58, 'rgba(245,250,244,.05)');
+  guideGradient.addColorStop(.72, 'rgba(245,250,244,0)');
+  guideGradient.addColorStop(1, 'rgba(245,250,244,0)');
+}
       ctx.save();
       ctx.setLineDash([3, 7]);
       ctx.strokeStyle = guideGradient;
@@ -1517,49 +2127,7 @@ this.aimAngle += limitedDifference * aimSensitivity;
     line(ctx, tip.x - dx * 8, tip.y - dy * 8, tip.x, tip.y);
   }
 
-  drawTrainingPrediction(g, white, directionX, directionY) {
-    const hit = firstRayBallHit(white, directionX, directionY, this.balls);
-    if (!hit) return;
-    const ctx = this.ctx;
-    const contactX = white.x + directionX * hit.distance;
-    const contactY = white.y + directionY * hit.distance;
-    const normalX = (hit.ball.x - contactX) / (BALL_RADIUS * 2);
-    const normalY = (hit.ball.y - contactY) / (BALL_RADIUS * 2);
-    const guide = TRAINING_GUIDES[this.trainingScenario % TRAINING_GUIDES.length];
-    const previewPower = this.phase === 'locked' ? this.power : guide.power;
-    if (previewPower < .025) return;
 
-    // Dezelfde krachtcurve en rolweerstand als de echte stoot.
-    const initialSpeed = 300 + Math.pow(previewPower, 1.35) * 5300;
-    const dragPerMillimetre = -Math.log(.44);
-    const impactSpeed = Math.max(0, initialSpeed - dragPerMillimetre * hit.distance);
-    if (impactSpeed < 7) return;
-
-    // Zelfde impulsverdeling als resolveBallCollision(): gelijke massa's en
-    // een botsingsrestitutie van .94.
-    const incomingNormal = impactSpeed * Math.max(0, directionX * normalX + directionY * normalY);
-    const impulse = incomingNormal * (1 + .94) * .5;
-    const objectVx = normalX * impulse;
-    const objectVy = normalY * impulse;
-    const whiteVx = directionX * impactSpeed - normalX * impulse
-      + directionX * this.topSpin * impactSpeed * .62;
-    const whiteVy = directionY * impactSpeed - normalY * impulse
-      + directionY * this.topSpin * impactSpeed * .62;
-
-    const objectPath = predictedBallPath(hit.ball.x, hit.ball.y, objectVx, objectVy);
-    const whitePath = predictedBallPath(contactX, contactY, whiteVx, whiteVy, this.sideSpin);
-
-    ctx.save();
-    ctx.setLineDash([2, 7]);
-    ctx.lineWidth = 1.25;
-    ctx.strokeStyle = 'rgba(255, 165, 158, .8)';
-    drawTablePath(ctx, g, objectPath);
-    if (whitePath.length > 1) {
-      ctx.strokeStyle = 'rgba(235, 249, 237, .82)';
-      drawTablePath(ctx, g, whitePath);
-    }
-    ctx.restore();
-  }
 
   drawScore(g) {
     const ctx = this.ctx;
@@ -1811,28 +2379,234 @@ drawTrainingInstructions(g) {
     ctx.fill();
     ctx.restore();
   }
-}
+  
 
-function initialBalls() {
-  const centerY = TABLE_WIDTH / 2;
-  const balls = [
-    { x: 737, y: centerY + 292, color: '#ffd600', kind: 'yellow' },
-    { x: 737, y: centerY - 292, color: '#159447', kind: 'green' },
-    { x: 737, y: centerY, color: '#7b3f1d', kind: 'brown' },
-    { x: TABLE_LENGTH * .5, y: centerY, color: '#1769d2', kind: 'blue' },
-    { x: TABLE_LENGTH * .75, y: centerY, color: '#ff7ca8', kind: 'pink' },
-    { x: TABLE_LENGTH - 324, y: centerY, color: '#111', kind: 'black' },
-    { x: 737 - 292 * .48, y: centerY, color: '#f3f3e9', kind: 'white', vx: 0, vy: 0 }
-  ];
-  const diameter = BALL_RADIUS * 2;
-  const apex = TABLE_LENGTH * .75 + diameter * 1.03;
-  const dx = diameter * Math.sqrt(3) / 2 * 1.01;
-  for (let column = 0; column < 5; column += 1) {
-    for (let row = 0; row <= column; row += 1) {
-      balls.push({ x: apex + column * dx, y: centerY + (row - column / 2) * diameter * 1.01, color: '#c71925', kind: 'red' });
+  drawTrainingPrediction(g, white, directionX, directionY) {
+    const ctx = this.ctx;
+    const guide =
+      TRAINING_GUIDES[
+        this.trainingScenario % TRAINING_GUIDES.length
+      ];
+
+    const previewPower =
+      this.phase === 'locked'
+        ? this.power
+        : guide.power;
+
+    if (previewPower < .025) return;
+
+    const initialSpeed =
+      300 + Math.pow(previewPower, 1.35) * 5300;
+
+    const approach = predictedCueApproach(
+      white,
+      directionX * initialSpeed,
+      directionY * initialSpeed,
+      this.balls,
+      this.sideSpin
+    );
+
+    ctx.save();
+    ctx.setLineDash([2, 7]);
+    ctx.lineWidth = 1.25;
+    ctx.strokeStyle = 'rgba(235, 249, 237, .82)';
+
+    if (guide.category === 'ONTSNAPPEN') {
+      drawTablePath(ctx, g, approach.points);
     }
+
+    if (!approach.hit) {
+      ctx.restore();
+      return;
+    }
+
+    const hit = approach.hit;
+    const contactX = hit.contactX;
+    const contactY = hit.contactY;
+    const impactSpeed = hit.impactSpeed;
+
+    if (impactSpeed < 7) {
+      ctx.restore();
+      return;
+    }
+
+    const normalX =
+      (hit.ball.x - contactX) / (BALL_RADIUS * 2);
+
+    const normalY =
+      (hit.ball.y - contactY) / (BALL_RADIUS * 2);
+
+    const incomingNormal =
+      impactSpeed *
+      Math.max(
+        0,
+        hit.directionX * normalX +
+        hit.directionY * normalY
+      );
+
+    const impulse =
+      incomingNormal * (1 + .94) * .5;
+
+    const objectVx = normalX * impulse;
+    const objectVy = normalY * impulse;
+
+    const whiteVx =
+      hit.directionX * impactSpeed -
+      normalX * impulse +
+      hit.directionX *
+        this.topSpin *
+        impactSpeed *
+        .62;
+
+    const whiteVy =
+      hit.directionY * impactSpeed -
+      normalY * impulse +
+      hit.directionY *
+        this.topSpin *
+        impactSpeed *
+        .62;
+
+    const objectPath = predictedBallPath(
+      hit.ball.x,
+      hit.ball.y,
+      objectVx,
+      objectVy
+    );
+
+    const whitePath = predictedBallPath(
+      contactX,
+      contactY,
+      whiteVx,
+      whiteVy,
+      hit.sideSpin
+    );
+
+    if (objectPath.length > 1) {
+      ctx.strokeStyle = 'rgba(255, 165, 158, .80)';
+      drawTablePath(ctx, g, objectPath);
+    }
+
+    if (whitePath.length > 1) {
+      ctx.strokeStyle = 'rgba(235, 249, 237, .82)';
+      drawTablePath(ctx, g, whitePath);
+    }
+
+    ctx.restore();
   }
-  return balls.map((ball) => ({ vx: 0, vy: 0, ...ball }));
+
+   drawTrainingPrediction(g, white, directionX, directionY) {
+    const ctx = this.ctx;
+    const guide =
+      TRAINING_GUIDES[
+        this.trainingScenario % TRAINING_GUIDES.length
+      ];
+
+    const previewPower =
+      this.phase === 'locked'
+        ? this.power
+        : guide.power;
+
+    if (previewPower < .025) return;
+
+    const initialSpeed =
+      300 + Math.pow(previewPower, 1.35) * 5300;
+
+    const approach = predictedCueApproach(
+      white,
+      directionX * initialSpeed,
+      directionY * initialSpeed,
+      this.balls,
+      this.sideSpin
+    );
+
+    ctx.save();
+    ctx.setLineDash([2, 7]);
+    ctx.lineWidth = 1.25;
+    ctx.strokeStyle = 'rgba(235, 249, 237, .82)';
+
+    if (guide.category === 'ONTSNAPPEN') {
+      drawTablePath(ctx, g, approach.points);
+    }
+
+    if (!approach.hit) {
+      ctx.restore();
+      return;
+    }
+
+    const hit = approach.hit;
+    const contactX = hit.contactX;
+    const contactY = hit.contactY;
+    const impactSpeed = hit.impactSpeed;
+
+    if (impactSpeed < 7) {
+      ctx.restore();
+      return;
+    }
+
+    const normalX =
+      (hit.ball.x - contactX) / (BALL_RADIUS * 2);
+
+    const normalY =
+      (hit.ball.y - contactY) / (BALL_RADIUS * 2);
+
+    const incomingNormal =
+      impactSpeed *
+      Math.max(
+        0,
+        hit.directionX * normalX +
+        hit.directionY * normalY
+      );
+
+    const impulse =
+      incomingNormal * (1 + .94) * .5;
+
+    const objectVx = normalX * impulse;
+    const objectVy = normalY * impulse;
+
+    const whiteVx =
+      hit.directionX * impactSpeed -
+      normalX * impulse +
+      hit.directionX *
+        this.topSpin *
+        impactSpeed *
+        .62;
+
+    const whiteVy =
+      hit.directionY * impactSpeed -
+      normalY * impulse +
+      hit.directionY *
+        this.topSpin *
+        impactSpeed *
+        .62;
+
+    const objectPath = predictedBallPath(
+      hit.ball.x,
+      hit.ball.y,
+      objectVx,
+      objectVy
+    );
+
+    const whitePath = predictedBallPath(
+      contactX,
+      contactY,
+      whiteVx,
+      whiteVy,
+      hit.sideSpin
+    );
+
+    if (objectPath.length > 1) {
+      ctx.strokeStyle = 'rgba(255, 165, 158, .80)';
+      drawTablePath(ctx, g, objectPath);
+    }
+
+    if (whitePath.length > 1) {
+      ctx.strokeStyle = 'rgba(235, 249, 237, .82)';
+      drawTablePath(ctx, g, whitePath);
+    }
+
+    ctx.restore();
+  }
+
 }
 
 function trainingBalls(index = 0) {
@@ -2099,7 +2873,73 @@ const layouts = [
           kind: 'yellow'
         }
       ]
-      }
+      },
+      {
+      white: {
+        x: 520,
+        y: centerY + 292
+      },
+      red: {
+        x: 1900,
+        y: centerY + 292
+      },
+      extraBalls: [
+        {
+          x: 737,
+          y: centerY + 292,
+          color: '#ffd600',
+          kind: 'yellow'
+        }
+      ]
+    },
+    {
+      white: {
+        x: 520,
+        y: centerY + 292
+      },
+      red: {
+        x: 1900,
+        y: centerY + 292
+      },
+      extraBalls: [
+        {
+          x: 737,
+          y: centerY + 292,
+          color: '#ffd600',
+          kind: 'yellow'
+        }
+      ]
+    },
+    {
+      white: {
+        x: 2600,
+        y: 1200
+      },
+      red: {
+        x: 1900,
+        y: 1300
+      },
+      extraBalls: [
+        {
+          x: 737,
+          y: centerY + 292,
+          color: '#ffd600',
+          kind: 'yellow'
+        },
+        {
+          x: 737,
+          y: centerY - 292,
+          color: '#159447',
+          kind: 'green'
+        },
+        {
+          x: 737,
+          y: centerY,
+          color: '#7b3f1d',
+          kind: 'brown'
+        }
+      ]
+    }
     
 
 ];
@@ -2334,102 +3174,3 @@ function wrapCanvasText(ctx, text, maximumWidth) {
   return lines;
 }
 
-function predictedBallPath(startX, startY, startVx, startVy, initialSideSpin = 0) {
-  const points = [{ x: startX, y: startY }];
-  const drag = -Math.log(.44);
-  const cushionRestitution = .83;
-  let x = startX;
-  let y = startY;
-  let vx = startVx;
-  let vy = startVy;
-  let sideSpin = initialSideSpin;
-
-  for (let bounce = 0; bounce < 10; bounce += 1) {
-    const speed = Math.hypot(vx, vy);
-    if (speed < 7) break;
-    const ux = vx / speed;
-    const uy = vy / speed;
-    const distances = [];
-    if (ux > 0) distances.push({ distance: (TABLE_LENGTH - BALL_RADIUS - x) / ux, wall: 'right' });
-    if (ux < 0) distances.push({ distance: (BALL_RADIUS - x) / ux, wall: 'left' });
-    if (uy > 0) distances.push({ distance: (TABLE_WIDTH - BALL_RADIUS - y) / uy, wall: 'bottom' });
-    if (uy < 0) distances.push({ distance: (BALL_RADIUS - y) / uy, wall: 'top' });
-    const edge = distances.filter((item) => item.distance > .01).sort((a, b) => a.distance - b.distance)[0];
-    const stopDistance = Math.max(0, (speed - 7) / drag);
-    const maximumTravel = Math.min(
-      stopDistance,
-      edge?.distance ?? Infinity
-    );
-
-    const pocketHit = predictedPocketHit(
-      x,
-      y,
-      ux,
-      uy,
-      maximumTravel
-    );
-
-    if (pocketHit) {
-      points.push({
-        x: pocketHit.pocket.x,
-        y: pocketHit.pocket.y
-      });
-
-      break;
-}
-    if (!edge || stopDistance <= edge.distance) {
-      x += ux * stopDistance;
-      y += uy * stopDistance;
-      points.push({ x, y });
-      break;
-    }
-
-    x += ux * edge.distance;
-    y += uy * edge.distance;
-    points.push({ x, y });
-    const speedAtWall = Math.max(7, speed - drag * edge.distance);
-    vx = ux * speedAtWall;
-    vy = uy * speedAtWall;
-    /*
- * Zijeffect neemt tijdens het rollen geleidelijk af.
- * Gebruik dezelfde tijdsafhankelijke afname als de echte bal.
- */
-    const speedRatio = Math.max(
-      0.0001,
-      Math.min(1, speedAtWall / speed)
-    );
-
-    const travelTime =
-      -Math.log(speedRatio) / drag;
-
-    sideSpin *= Math.pow(.52, travelTime);
-    if (edge.wall === 'left') {
-      vx = Math.abs(vx) * cushionRestitution;
-      vy -= sideSpin * Math.abs(vx) * .18;
-      x = BALL_RADIUS + .02;
-    } else if (edge.wall === 'right') {
-      vx = -Math.abs(vx) * cushionRestitution;
-      vy += sideSpin * Math.abs(vx) * .18;
-      x = TABLE_LENGTH - BALL_RADIUS - .02;
-    } else if (edge.wall === 'top') {
-      vy = Math.abs(vy) * cushionRestitution;
-      vx += sideSpin * Math.abs(vy) * .18;
-      y = BALL_RADIUS + .02;
-    } else {
-      vy = -Math.abs(vy) * cushionRestitution;
-      vx -= sideSpin * Math.abs(vy) * .18;
-      y = TABLE_WIDTH - BALL_RADIUS - .02;
-    }
-    }
-  return points;
-}
-
-function drawTablePath(ctx, g, points) {
-  if (points.length < 2) return;
-  ctx.beginPath();
-  ctx.moveTo(g.x + points[0].x * g.scale, g.y + points[0].y * g.scale);
-  for (let index = 1; index < points.length; index += 1) {
-    ctx.lineTo(g.x + points[index].x * g.scale, g.y + points[index].y * g.scale);
-  }
-  ctx.stroke();
-}

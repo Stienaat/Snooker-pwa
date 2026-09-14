@@ -336,7 +336,7 @@ footer a { color: #c3d0c5; }
     pointer-events: auto;
 }
 
-.bottom-menu.school { grid-template-columns: repeat(6, 1fr); }
+.bottom-menu.school { grid-template-columns: repeat(7, 1fr); }
 
 .bottom-menu button { font-size: clamp(.62rem, 1.7vmin, 1rem); padding: .75rem .2rem; }
 
