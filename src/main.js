@@ -26,6 +26,7 @@ const availablePlayers = document.querySelector('#available-players');
 const challengeBox = document.querySelector('#challenge-box');
 const challengeText = document.querySelector('#challenge-text');
 const codePanel = document.querySelector('#code-panel');
+const demoMenu = document.querySelector('#demo-menu');
 let currentChallenge = null;
 let installPrompt = null;
 
@@ -156,7 +157,12 @@ gameUi.addEventListener('contextmenu', suppressBrowserGesture);
 const table = new SnookerTable(canvas, ({ phase, effectSelectorOpen, score, phoneScore, breakScore, message, target: targetText }) => {
   bottomMenu.hidden = phase === 'placing' || phase === 'locked' || phase === 'moving' || phase === 'computer' || phase === 'waiting';
   effectButton.textContent = effectSelectorOpen ? 'EFFECT LOSLATEN' : 'EFFECT';
-  if (message) status.textContent = `${message} · JIJ ${score ?? 0} · PHONE ${phoneScore ?? 0} · BREAK ${breakScore ?? 0}`;
+  if (message) {
+  status.textContent =
+    table.mode === 'school'
+      ? message
+      : `${message} · JIJ ${score ?? 0} · PHONE ${phoneScore ?? 0} · BREAK ${breakScore ?? 0}`;
+}
   if (targetText) target.textContent = targetText;
 });
 
@@ -166,9 +172,10 @@ function hideReadme() { readme.hidden = true; }
 function startGame(mode, level = null) {
   lobby.setPresence(playerNameInput.value, 'busy').catch(() => {});
   table.start(mode, level);
-  guideButton.textContent = mode === 'school' ? 'HULP EXTRA' : 'HULP AAN';
+  guideButton.textContent = mode === 'school' ? 'HULP UIT' : 'HULP AAN';
   newTrainingButton.hidden = mode !== 'school';
   bottomMenu.classList.toggle('school', mode === 'school');
+  gameUi.classList.toggle('school-mode', mode === 'school');
   startMenu.hidden = true;
   levelMenu.hidden = true;
   onlineMenu.hidden = true;
@@ -322,14 +329,23 @@ document.addEventListener('click', (event) => {
     table.reset();
 
     guideButton.textContent =
-      table.mode === 'school'
-        ? 'HULP EXTRA'
-        : 'HULP AAN';
-  }
+    table.mode === 'school'
+      ? 'HULP UIT'
+      : 'HULP AAN';
+    }
 
   if (action === 'new-training') {
-    table.newTrainingScenario();
-    guideButton.textContent = 'HULP EXTRA';
+    demoMenu.hidden = false;
+  }
+
+  if (action === 'select-demo') {
+  table.selectTrainingScenario(control.dataset.demo);
+  demoMenu.hidden = true;
+  guideButton.textContent = 'HULP UIT';
+  }
+
+  if (action === 'close-demo-menu') {
+    demoMenu.hidden = true;
   }
 
   if (action === 'exit') {

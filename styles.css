@@ -302,6 +302,17 @@ footer a { color: #c3d0c5; }
 
 .game-ui { position: absolute; inset: 0; pointer-events: none; color: #79bc8b; }
 .score { display: none; }
+.game-ui.school-mode .score {
+  display: block;
+  position: absolute;
+  left: 50%;
+  bottom: 14%;
+  transform: translateX(-50%);
+  width: 80%;
+  text-align: center;
+  color: #91c99f;
+  pointer-events: none;
+}
 .score span, .score strong { display: block; }
 .score span { opacity: .7; font-size: clamp(.68rem, 1.45vmin, .95rem); }
 .score strong { margin-top: .25rem; font-size: clamp(1.05rem, 2.5vmin, 1.65rem); }
@@ -343,7 +354,51 @@ footer a { color: #c3d0c5; }
 .online-message {
   font-size: clamp(0.8rem, 2.5vmin, 1rem);
 }
+.demo-card {
+  width: min(440px, 88vw);
+  max-height: 88vh;
+  overflow-y: auto;
+  padding: clamp(14px, 3vmin, 24px);
+}
 
+.demo-card h2 {
+  margin: 0 0 8px;
+  font-size: clamp(1.15rem, 3vmin, 1.5rem);
+}
+
+.demo-list {
+  display: grid;
+  gap: 0;
+}
+
+.demo-list h3 {
+  margin: 9px 0 2px;
+  color: #a8d9b3;
+  font-size: clamp(0.78rem, 2vmin, 0.95rem);
+  letter-spacing: 0.1em;
+  text-align: left;
+}
+
+.demo-list button {
+  width: 100%;
+  margin: 0;
+  padding: 2px 8px;
+  color: #91c99f;
+  font-size: clamp(0.72rem, 1.8vmin, 0.9rem);
+  line-height: 1.15;
+  text-align: left;
+}
+
+.demo-card > button:last-child {
+  margin-top: 10px;
+  padding: 4px 8px;
+  font-size: clamp(0.78rem, 2vmin, 0.95rem);
+}
+
+.demo-list button:hover,
+.demo-list button:focus-visible {
+  color: #d0efd6;
+}
 @media (orientation: landscape) and (max-height: 600px) {
   .cloth-overlay { grid-template-rows: .7fr auto .8fr; }
   .menu { display: grid; grid-template-columns: repeat(2, 1fr); width: min(62vw, 600px); }
