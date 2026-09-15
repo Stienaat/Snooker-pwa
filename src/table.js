@@ -230,8 +230,8 @@ const TRAINING_GUIDES = [
       y: 634,
       radius: 150
     }
-    },
-    {
+  },
+  {
     demo: 'DEMO 15',
     category: 'POSITIESPEL',
     name: 'DOORLOOP NAAR ROOD',
@@ -287,9 +287,9 @@ const TRAINING_GUIDES = [
       y: 1600,
       radius: 150
     }
-    },
-    {
-      demo: 'DEMO 18',
+  },
+  {
+    demo: 'DEMO 18',
       category: 'BANDEN',
       name: 'ÉÉN BAND ZONDER EFFECT',
       instruction:
@@ -305,10 +305,10 @@ const TRAINING_GUIDES = [
         x: 2860,
         y: 1465,
         radius: 140
-      }
-    },
-    {
-        demo: 'DEMO 19',
+      }  
+  },   
+  {
+    demo: 'DEMO 19',
         category: 'BANDEN',
         name: 'LINKS EFFECT',
         instruction:
@@ -325,9 +325,9 @@ const TRAINING_GUIDES = [
           y: 1270,
           radius: 80
         }
-      },
-      {
-        demo: 'DEMO 20',
+  },
+  { 
+    demo: 'DEMO 20',
         category: 'BANDEN',
         name: 'RECHTS EFFECT',
         instruction:
@@ -344,9 +344,9 @@ const TRAINING_GUIDES = [
           y: 1270,
           radius: 80
         }
-      },
-      {
-        demo: 'DEMO 21',
+  },
+  {
+    demo: 'DEMO 21',
         category: 'BANDEN',
         name: 'TWEE BANDEN',
         instruction:
@@ -363,9 +363,9 @@ const TRAINING_GUIDES = [
           y: 860,
           radius: 100
         }
-        },
-        {
-        demo: 'DEMO 22',
+  },
+  {
+    demo: 'DEMO 22',
         category: 'VERDEDIGEN',
         name: 'AFSTAND CREËREN',
         instruction:
@@ -383,9 +383,9 @@ const TRAINING_GUIDES = [
           y: 1600,
           radius: 180
         }
-        },
-        {
-        demo: 'DEMO 23',
+  },
+  {
+    demo: 'DEMO 23',
         category: 'VERDEDIGEN',
         name: 'SNOOKER ACHTER GEEL',
         instruction: 'Raak rood dun en stuur wit via de band achter geel.',
@@ -401,9 +401,9 @@ const TRAINING_GUIDES = [
           y: 1180,
           radius: 145
         }
-        },
-        {
-        demo: 'DEMO 24',
+  },
+  {
+    demo: 'DEMO 24',
         category: 'ONTSNAPPEN',
         name: 'VIA ÉÉN BAND',
         instruction: 'Speel wit via de onderste band en raak rood.',
@@ -414,9 +414,9 @@ const TRAINING_GUIDES = [
         powerName: 'MIDDELHARD',
         aimAngle: .769,
         requiresRedPot: false
-      },
-      {
-        demo: 'DEMO 25',
+  },
+  {
+   demo: 'DEMO 25',
         category: 'ONTSNAPPEN',
         name: 'VIA TWEE BANDEN',
         instruction: 'Speel via de onderste en bovenste band naar rood.',
@@ -427,9 +427,9 @@ const TRAINING_GUIDES = [
         powerName: 'HARD',
         aimAngle: 1.262,
         requiresRedPot: false
-      },
-      {
-        demo: 'DEMO 26',
+  },
+  {
+    demo: 'DEMO 26',
         category: 'VERDEDIGEN',
         name: 'DUNNE SAFETY',
         instruction: 'Raak rood uiterst dun en laat wit naar de baulk lopen.',
@@ -438,14 +438,141 @@ const TRAINING_GUIDES = [
         sideSpin: 0,
         power: .55,
         powerName: 'MIDDEL',
-        aimAngle: 3.070,
+        aimAngle: 3.080,
         requiresRedPot: false,
         target: {
-          x: 550,
-          y: 1350,
-          radius: 190
-        }
-      }
+          x: 400,
+          y: 1470,
+          radius: 140
+        }                
+  },
+  {
+    demo: 'DEMO 27',
+          category: 'VERDEDIGEN',
+          name: 'WIT TEGEN DE BAND',
+          instruction: 'Raak rood dun en laat wit tegen de lange band eindigen.',
+          result: 'Wit stopt dicht tegen de band en bemoeilijkt de volgende stoot.',
+          topSpin: 0,
+          sideSpin: 0,
+          power: .33,
+          powerName: 'ZACHT',
+          aimAngle: 2.602,
+          requiresRedPot: false,
+          target: {
+            x: 1300,
+            y: 1765,
+            radius: 145
+          }
+  },
+  {
+    demo: 'DEMO 28',
+            category: 'VERDEDIGEN',
+            name: 'SNOOKER VIA DE BAND',
+            instruction: 'Raak rood dun en stuur wit via de band achter geel.',
+            result: 'Geel blokkeert vanuit de eindpositie het zicht op rood.',
+            topSpin: 0,
+            sideSpin: 0,
+            power: .52,
+            powerName: 'MIDDEL',
+            aimAngle: 2.412,
+            requiresRedPot: false,
+            target: {
+              x: 520,
+              y: 1181,
+              radius: 150
+            }
+  },
+  {
+    demo: 'DEMO 29',
+            category: 'POSITIESPEL',
+            name: 'RODEN OPENBREKEN',
+            instruction: 'Raak de voorste rode vol en gebruik backspin.',
+            result: 'De groep wordt geopend en wit komt gecontroleerd terug.',
+            topSpin: -.35,
+            sideSpin: 0,
+            power: .56,
+            powerName: 'MIDDEL',
+            aimAngle: 0,
+            requiresRedPot: false,
+            target: {
+              x: 1450,
+              y: 889,
+              radius: 180
+            }
+  },
+  {
+    demo: 'DEMO 30',
+            category: 'POSITIESPEL',
+            name: 'KLEUR NAAR ROOD',
+            instruction: 'Pot blauw en trek wit terug naar de rode bal.',
+            result: 'Blauw valt en wit eindigt speelbaar voor rood.',
+            topSpin: -.65,
+            sideSpin: 0,
+            power: .48,
+            powerName: 'MIDDEL',
+            aimAngle: -1.570796,
+            requiresRedPot: false,
+            target: {
+              x: 1785,
+              y: 1400,
+              radius: 145
+            }
+  },
+  {
+    demo: 'DEMO 31',
+            category: 'POSITIESPEL',
+            name: 'ROOD NAAR KLEUR',
+            instruction: 'Pot rood schuin en laat wit doorlopen naar blauw.',
+            result: 'Rood valt en wit eindigt speelbaar voor blauw.',
+            topSpin: 0,
+            sideSpin: 0,
+            power: .35,
+            powerName: 'ZACHT',
+            aimAngle: -2.550,
+            requiresRedPot: true,
+            target: {
+              x: 1050,
+              y: 350,
+              radius: 145
+            }
+  },
+  {
+    demo: 'DEMO 32',
+            category: 'LANGE STOOT',
+            name: 'LANGE POT',
+            instruction: 'Pot rood over grote afstand en houd wit onder controle.',
+            result: 'Rood valt en wit blijft centraal speelbaar.',
+            topSpin: -.20,
+            sideSpin: 0,
+            power: .95,
+            powerName: 'MAXIMAAL',
+            aimAngle: -0.4851024,
+            requiresRedPot: true,
+            target: {
+              x: 2770,
+              y: 425,
+              radius: 155
+            }
+  },
+  {
+    demo: 'DEMO 33',
+    category: 'CANNON',
+    name: 'ROOD VIA CANNON',
+    instruction: 'Pot rood en laat wit daarna blauw raken.',
+    result: 'Rood valt; wit raakt blauw en blijft daar speelbaar.',
+    topSpin: 0,
+    sideSpin: 0,
+    power: .35,
+    powerName: 'ZACHT',
+    aimAngle: -2.548,
+    requiresRedPot: true,
+    requiredSecondContact: 'blue',
+    target: {
+      x: 1280,
+      y: 350,
+      radius: 150
+    }
+  }   
 
 ];
 
@@ -1408,10 +1535,53 @@ tick(time) {
 
   this.physicsAccumulator += frameDt;
 
-  while (this.physicsAccumulator >= fixedStep) {
-    this.stepPhysics(fixedStep);
-    this.physicsAccumulator -= fixedStep;
+while (this.physicsAccumulator >= fixedStep) {
+  const maximumSpeed = this.balls.reduce(
+    (maximum, ball) =>
+      Math.max(
+        maximum,
+        Math.hypot(ball.vx, ball.vy)
+      ),
+    0
+  );
+
+  /*
+   * Een bal mag per botsingscontrole maximaal 45%
+   * van zijn straal afleggen. Dit is vooral belangrijk
+   * bij dunne botsingen.
+   *
+   * Het aantal substappen wordt uitsluitend uit de
+   * huidige baltoestand berekend en blijft dus
+   * reproduceerbaar.
+   */
+  const maximumStepDistance =
+    BALL_RADIUS * .45;
+
+  const physicsSteps = Math.max(
+    1,
+    Math.min(
+      12,
+      Math.ceil(
+        maximumSpeed *
+        fixedStep /
+        maximumStepDistance
+      )
+    )
+  );
+
+  const physicsStep =
+    fixedStep / physicsSteps;
+
+  for (
+    let step = 0;
+    step < physicsSteps;
+    step += 1
+  ) {
+    this.stepPhysics(physicsStep);
   }
+
+  this.physicsAccumulator -= fixedStep;
+}
 
   // Potanimaties hoeven niet natuurkundig deterministisch te zijn.
   for (const animation of this.potAnimations) {
@@ -1840,28 +2010,51 @@ tick(time) {
         white.y - guide.target.y
       ) <= guide.target.radius;
 
-    const movedColor = this.balls.find((ball) =>
-    ball.kind !== 'white' &&
-    ball.kind !== 'red' &&
-    Math.hypot(
-      ball.x - ball.startX,
-      ball.y - ball.startY
-    ) > 8
+const movedColors = this.balls.filter((ball) =>
+  ball.kind !== 'white' &&
+  ball.kind !== 'red' &&
+  Math.hypot(
+    ball.x - ball.startX,
+    ball.y - ball.startY
+  ) > 8
+);
+
+const requiredSecondContact =
+  guide.requiredSecondContact || null;
+
+const requiredColorMoved =
+  !requiredSecondContact ||
+  movedColors.some(
+    (ball) =>
+      ball.kind === requiredSecondContact
   );
 
-    let resultMessage;
+const wrongMovedColor =
+  movedColors.find(
+    (ball) =>
+      ball.kind !== requiredSecondContact
+  );
 
-    if (this.whitePotted || !white) {
-      resultMessage = 'WIT GEPOT — SPEEL OPNIEUW';
-    }  else if (movedColor) {resultMessage =
-      `${movedColor.kind.toUpperCase()} GERAAKT — SPEEL OPNIEUW`;
-   } else if (!redRequirementMet) {
-      resultMessage = 'ROOD NIET GEPOT — SPEEL OPNIEUW';
-    } else if (!whiteInTarget) {
-      resultMessage = 'POSITIE NIET GELUKT — SPEEL OPNIEUW';
-    } else {
-      resultMessage = 'GESLAAGD';
-    }
+let resultMessage;
+
+if (this.whitePotted || !white) {
+  resultMessage =
+    'WIT GEPOT — SPEEL OPNIEUW';
+} else if (wrongMovedColor) {
+  resultMessage =
+    `${wrongMovedColor.kind.toUpperCase()} GERAAKT — SPEEL OPNIEUW`;
+} else if (!redRequirementMet) {
+  resultMessage =
+    'ROOD NIET GEPOT — SPEEL OPNIEUW';
+} else if (!requiredColorMoved) {
+  resultMessage =
+    `${requiredSecondContact.toUpperCase()} NIET GERAAKT — SPEEL OPNIEUW`;
+} else if (!whiteInTarget) {
+  resultMessage =
+    'POSITIE NIET GELUKT — SPEEL OPNIEUW';
+} else {
+  resultMessage = 'GESLAAGD';
+}
 
     this.emitState(resultMessage);
 
@@ -2070,12 +2263,12 @@ tick(time) {
       const startY = center.y + dy * startDistance;
       const endX = center.x + dx * Math.max(startDistance + 40, guideDistance - radius);
       const endY = center.y + dy * Math.max(startDistance + 40, guideDistance - radius);
-const guideGradient = ctx.createLinearGradient(
-  startX,
-  startY,
-  endX,
-  endY
-);
+      const guideGradient = ctx.createLinearGradient(
+        startX,
+        startY,
+        endX,
+        endY
+      );
 
 if (cueLocked) {
   guideGradient.addColorStop(0, 'rgba(255,112,100,1)');
@@ -2095,7 +2288,7 @@ if (cueLocked) {
       ctx.save();
       ctx.setLineDash([3, 7]);
       ctx.strokeStyle = guideGradient;
-      ctx.lineWidth = cueLocked ? 1.8 : 1.1;
+      ctx.lineWidth = 1.1;
       ctx.beginPath();
       ctx.moveTo(startX, startY);
       ctx.lineTo(endX, endY);
@@ -2380,120 +2573,6 @@ drawTrainingInstructions(g) {
     ctx.restore();
   }
   
-
-  drawTrainingPrediction(g, white, directionX, directionY) {
-    const ctx = this.ctx;
-    const guide =
-      TRAINING_GUIDES[
-        this.trainingScenario % TRAINING_GUIDES.length
-      ];
-
-    const previewPower =
-      this.phase === 'locked'
-        ? this.power
-        : guide.power;
-
-    if (previewPower < .025) return;
-
-    const initialSpeed =
-      300 + Math.pow(previewPower, 1.35) * 5300;
-
-    const approach = predictedCueApproach(
-      white,
-      directionX * initialSpeed,
-      directionY * initialSpeed,
-      this.balls,
-      this.sideSpin
-    );
-
-    ctx.save();
-    ctx.setLineDash([2, 7]);
-    ctx.lineWidth = 1.25;
-    ctx.strokeStyle = 'rgba(235, 249, 237, .82)';
-
-    if (guide.category === 'ONTSNAPPEN') {
-      drawTablePath(ctx, g, approach.points);
-    }
-
-    if (!approach.hit) {
-      ctx.restore();
-      return;
-    }
-
-    const hit = approach.hit;
-    const contactX = hit.contactX;
-    const contactY = hit.contactY;
-    const impactSpeed = hit.impactSpeed;
-
-    if (impactSpeed < 7) {
-      ctx.restore();
-      return;
-    }
-
-    const normalX =
-      (hit.ball.x - contactX) / (BALL_RADIUS * 2);
-
-    const normalY =
-      (hit.ball.y - contactY) / (BALL_RADIUS * 2);
-
-    const incomingNormal =
-      impactSpeed *
-      Math.max(
-        0,
-        hit.directionX * normalX +
-        hit.directionY * normalY
-      );
-
-    const impulse =
-      incomingNormal * (1 + .94) * .5;
-
-    const objectVx = normalX * impulse;
-    const objectVy = normalY * impulse;
-
-    const whiteVx =
-      hit.directionX * impactSpeed -
-      normalX * impulse +
-      hit.directionX *
-        this.topSpin *
-        impactSpeed *
-        .62;
-
-    const whiteVy =
-      hit.directionY * impactSpeed -
-      normalY * impulse +
-      hit.directionY *
-        this.topSpin *
-        impactSpeed *
-        .62;
-
-    const objectPath = predictedBallPath(
-      hit.ball.x,
-      hit.ball.y,
-      objectVx,
-      objectVy
-    );
-
-    const whitePath = predictedBallPath(
-      contactX,
-      contactY,
-      whiteVx,
-      whiteVy,
-      hit.sideSpin
-    );
-
-    if (objectPath.length > 1) {
-      ctx.strokeStyle = 'rgba(255, 165, 158, .80)';
-      drawTablePath(ctx, g, objectPath);
-    }
-
-    if (whitePath.length > 1) {
-      ctx.strokeStyle = 'rgba(235, 249, 237, .82)';
-      drawTablePath(ctx, g, whitePath);
-    }
-
-    ctx.restore();
-  }
-
    drawTrainingPrediction(g, white, directionX, directionY) {
     const ctx = this.ctx;
     const guide =
@@ -2524,7 +2603,10 @@ drawTrainingInstructions(g) {
     ctx.lineWidth = 1.25;
     ctx.strokeStyle = 'rgba(235, 249, 237, .82)';
 
-    if (guide.category === 'ONTSNAPPEN') {
+    if (
+      guide.category === 'ONTSNAPPEN' ||
+      guide.category === 'LANGE STOOT'
+    ) {
       drawTablePath(ctx, g, approach.points);
     }
 
@@ -2608,6 +2690,94 @@ drawTrainingInstructions(g) {
   }
 
 }
+
+function initialBalls() {
+  const centerY = TABLE_WIDTH / 2;
+
+  const balls = [
+    {
+      x: 737,
+      y: centerY + 292,
+      color: '#ffd600',
+      kind: 'yellow'
+    },
+    {
+      x: 737,
+      y: centerY - 292,
+      color: '#159447',
+      kind: 'green'
+    },
+    {
+      x: 737,
+      y: centerY,
+      color: '#7b3f1d',
+      kind: 'brown'
+    },
+    {
+      x: TABLE_LENGTH * .5,
+      y: centerY,
+      color: '#1769d2',
+      kind: 'blue'
+    },
+    {
+      x: TABLE_LENGTH * .75,
+      y: centerY,
+      color: '#ff7ca8',
+      kind: 'pink'
+    },
+    {
+      x: TABLE_LENGTH - 324,
+      y: centerY,
+      color: '#111',
+      kind: 'black'
+    },
+    {
+      x: 737 - 292 * .48,
+      y: centerY,
+      color: '#f3f3e9',
+      kind: 'white',
+      vx: 0,
+      vy: 0
+    }
+  ];
+
+  const diameter = BALL_RADIUS * 2;
+  const apex =
+    TABLE_LENGTH * .75 +
+    diameter * 1.03;
+
+  const dx =
+    diameter *
+    Math.sqrt(3) /
+    2 *
+    1.01;
+
+  for (let column = 0; column < 5; column += 1) {
+    for (
+      let row = 0;
+      row <= column;
+      row += 1
+    ) {
+      balls.push({
+        x: apex + column * dx,
+        y:
+          centerY +
+          (row - column / 2) *
+          diameter *
+          1.01,
+        color: '#c71925',
+        kind: 'red'
+      });
+    }
+  }
+
+  return balls.map((ball) => ({
+    vx: 0,
+    vy: 0,
+    ...ball
+  }));
+}
+
 
 function trainingBalls(index = 0) {
   const centerY = TABLE_WIDTH / 2;
@@ -2917,7 +3087,7 @@ const layouts = [
       },
       red: {
         x: 1900,
-        y: 1300
+        y: 1200
       },
       extraBalls: [
         {
@@ -2939,11 +3109,152 @@ const layouts = [
           kind: 'brown'
         }
       ]
+    },
+    {
+      white: {
+        x: 2700,
+        y: 650
+      },
+      red: {
+        x: 2100,
+        y: 950
+      }
+    },
+    {
+      white: {
+        x: 2670,
+        y: 325
+      },
+      red: {
+        x: 1962,
+        y: 888
+      },
+      extraBalls: [
+        {
+          x: 737,
+          y: centerY + 292,
+          color: '#ffd600',
+          kind: 'yellow'
+        }
+      ]
+    },
+    {
+  white: {
+    x: 1200,
+    y: centerY
+  },
+  red: {
+    x: 2000,
+    y: centerY
+  },
+  extraBalls: [
+    {
+      x: 2046,
+      y: centerY - 26.25,
+      color: '#c71925',
+      kind: 'red'
+    },
+    {
+      x: 2046,
+      y: centerY + 26.25,
+      color: '#c71925',
+      kind: 'red'
+    },
+    {
+      x: 2091,
+      y: centerY - 52.5,
+      color: '#c71925',
+      kind: 'red'
+    },
+    {
+      x: 2091,
+      y: centerY,
+      color: '#c71925',
+      kind: 'red'
+    },
+    {
+      x: 2091,
+      y: centerY + 52.5,
+      color: '#c71925',
+      kind: 'red'
     }
-    
+  ]
+},
+{
+  white: {
+    x: 1785,
+    y: 1100
+  },
+  red: {
+    x: 2100,
+    y: 1400
+  },
+  extraBalls: [
+    {
+      x: 1785,
+      y: 500,
+      color: '#1769d2',
+      kind: 'blue'
+    }
+  ]
+},
+{
+  white: {
+    x: 2600,
+    y: 900
+  },
+  red: {
+    x: 1785,
+    y: 300
+  },
+  extraBalls: [
+    {
+      x: 800,
+      y: 350,
+      color: '#1769d2',
+      kind: 'blue'
+    }
+  ]
+},
+{
+  white: {
+    x: 600,
+    y: 1565
+  },
+  red: {
+    x: 3000,
+    y: 299.93
+  },
+  extraBalls: [
+    {
+      x: 2730,
+      y: 600,
+      color: '#1769d2',
+      kind: 'blue'
+    }
+  ]
+},
+{
+  white: {
+    x: 2600,
+    y: 900
+  },
+  red: {
+    x: 1787,
+    y: 300
+  },
+  extraBalls: [
+    {
+      x: 1200,
+      y: 355,
+      color: '#1769d2',
+      kind: 'blue'
+    }
+  ]
+}
 
 ];
-  const layout = layouts[index % layouts.length];
+ const layout = layouts[index % layouts.length];
  const balls = [
   {
     ...layout.white,
