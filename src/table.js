@@ -987,6 +987,88 @@ function predictedBallPath(
 
   return points;
 }
+const GAME_SOUND_URLS = {
+  ball: './assets/sounds/ball_hit.wav',
+  cushion: './assets/sounds/cushion_hit.wav',
+  pocket: './assets/sounds/pocket_drop.wav'
+};
+
+const gameSoundBuffers = {};
+let gameAudioContext = null;
+let gameAudioLoading = null;
+
+function unlockGameAudio() {
+  try {
+    if (!gameAudioContext) {
+      const AudioContextClass =
+        window.AudioContext || window.webkitAudioContext;
+
+      if (!AudioContextClass) return;
+
+      gameAudioContext = new AudioContextClass({
+        latencyHint: 'interactive'
+      });
+    }
+
+    if (gameAudioContext.state === 'suspended') {
+      gameAudioContext.resume().catch(() => {});
+    }
+
+    if (!gameAudioLoading) {
+      gameAudioLoading = Promise.all(
+        Object.entries(GAME_SOUND_URLS).map(async ([name, url]) => {
+          if (gameSoundBuffers[name]) return;
+
+          const response = await fetch(url);
+          if (!response.ok) {
+            throw new Error(`Geluid niet gevonden: ${url}`);
+          }
+
+          const data = await response.arrayBuffer();
+
+          gameSoundBuffers[name] =
+            await gameAudioContext.decodeAudioData(data);
+        })
+      ).catch((error) => {
+        gameAudioLoading = null;
+        console.warn('Geluiden laden mislukt:', error);
+      });
+    }
+  } catch (error) {
+    console.warn('Audio starten mislukt:', error);
+  }
+}
+
+function playGameSound(name, volume = 1) {
+  const buffer = gameSoundBuffers[name];
+
+  if (
+    !buffer ||
+    !gameAudioContext ||
+    gameAudioContext.state !== 'running'
+  ) return;
+
+  try {
+    const source = gameAudioContext.createBufferSource();
+    const gain = gameAudioContext.createGain();
+
+    source.buffer = buffer;
+    if (name === 'cushion') volume *= .4;
+    gain.gain.value = Math.max(0, Math.min(1, volume));
+
+    source.connect(gain);
+    gain.connect(gameAudioContext.destination);
+
+    source.onended = () => {
+      source.disconnect();
+      gain.disconnect();
+    };
+
+    source.start();
+  } catch (error) {
+    console.warn('Geluid afspelen mislukt:', error);
+  }
+}
 
 export class SnookerTable {
   constructor(canvas, onStateChange = () => {}) {
@@ -1220,7 +1302,7 @@ this.aimAngle =
     return guide.category;
   }
     if (this.phase === 'placing') return 'PLAATS WIT IN DE D';
-    if (this.phase === 'computer') return 'PHONE DENKT';
+    if (this.phase === 'computer') return 'PHONE SPEELT';
     if (this.phase === 'waiting') return `${this.onlinePlayerName(this.currentPlayer)} SPEELT`;
     if (this.phase === 'disconnected') return `${this.onlineOpponentName()} OFFLINE`;
     if (this.rulePhase === 'red') return 'SPEEL ROOD';
@@ -1252,6 +1334,7 @@ this.aimAngle =
   }
 
 pointerDown(event) {
+  unlockGameAudio();
   if (
     !this.mode ||
     this.phase === 'moving' ||
@@ -1647,6 +1730,7 @@ while (this.physicsAccumulator >= fixedStep) {
 
       const pocket = capturedPocket(ball);
       if (pocket) {
+        playGameSound('pocket', .8);
         this.potAnimations.push({
           x: ball.x,
           y: ball.y,
@@ -1661,21 +1745,33 @@ while (this.physicsAccumulator >= fixedStep) {
       }
 
       if (ball.x < BALL_RADIUS) {
+        if (ball.vx < -7) {
+          playGameSound('cushion', Math.max(.25, Math.min(1, Math.hypot(ball.vx, ball.vy) / 1800)));
+        }
         ball.x = BALL_RADIUS;
         ball.vx = Math.abs(ball.vx) * restitution;
         if (ball.kind === 'white') ball.vy -= (ball.sideSpin || 0) * Math.abs(ball.vx) * .18;
       }
       if (ball.x > TABLE_LENGTH - BALL_RADIUS) {
+        if (ball.vx > 7) {
+         playGameSound('cushion', Math.max(.25, Math.min(1, Math.hypot(ball.vx, ball.vy) / 1800)));
+        }
         ball.x = TABLE_LENGTH - BALL_RADIUS;
         ball.vx = -Math.abs(ball.vx) * restitution;
         if (ball.kind === 'white') ball.vy += (ball.sideSpin || 0) * Math.abs(ball.vx) * .18;
       }
       if (ball.y < BALL_RADIUS) {
+         if (ball.vx > 7) {
+          playGameSound('cushion', Math.max(.25, Math.min(1, Math.hypot(ball.vx, ball.vy) / 1800)));
+         }
         ball.y = BALL_RADIUS;
         ball.vy = Math.abs(ball.vy) * restitution;
         if (ball.kind === 'white') ball.vx += (ball.sideSpin || 0) * Math.abs(ball.vy) * .18;
       }
       if (ball.y > TABLE_WIDTH - BALL_RADIUS) {
+         if (ball.vx > 7) {
+          playGameSound('cushion',Math.max(.25, Math.min(1, Math.hypot(ball.vx, ball.vy) / 1800)));
+         }  
         ball.y = TABLE_WIDTH - BALL_RADIUS;
         ball.vy = -Math.abs(ball.vy) * restitution;
         if (ball.kind === 'white') ball.vx -= (ball.sideSpin || 0) * Math.abs(ball.vy) * .18;
@@ -3426,6 +3522,12 @@ function resolveBallCollision(a, b) {
   b.y += ny * overlap * .5;
   const relativeNormal = (a.vx - b.vx) * nx + (a.vy - b.vy) * ny;
   if (relativeNormal <= 0) return;
+  const collisionVolume = Math.max(
+  .08,
+  Math.min(1, relativeNormal / 1800)
+);
+
+playGameSound('ball', collisionVolume);
   const collisionRestitution = .94;
   const impulse = relativeNormal * (1 + collisionRestitution) * .5;
   a.vx -= impulse * nx;

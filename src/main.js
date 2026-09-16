@@ -193,9 +193,12 @@ function exitGame() {
   lobby.setPresence(playerNameInput.value, 'available').catch(() => {});
 }
 
-document.addEventListener('click', (event) => {
+function handleMenuControl(event) {
   const control = event.target.closest('[data-mode], [data-level], [data-action], [data-challenge]');
   if (!control) return;
+  // Gewone klikken op de tafelbalk voeren niets uit.
+if (bottomMenu.contains(control) && event.type === 'click') return;
+if (control.disabled) return;
   const { mode, level, action, challenge } = control.dataset;
   if (challenge) lobby.challenge(challenge);
   if (mode === 'computer' && !control.disabled) {
@@ -225,7 +228,7 @@ document.addEventListener('click', (event) => {
   if (level) {
     startGame('computer', level);
   }
-  if (level) startGame('computer', level);
+
   if (action === 'back-start') {
     levelMenu.hidden = true;
     startMenu.hidden = false;
@@ -363,7 +366,93 @@ if (action === 'training-pro') {
   guideButton.textContent = 'HULP EXTRA';
 }
 
+}
+
+document.addEventListener('click', handleMenuControl);
+document.addEventListener('table-menu-action', handleMenuControl);
+
+let tableMenuPress = null;
+
+function cancelTableMenuPress() {
+  if (!tableMenuPress) return;
+
+  clearTimeout(tableMenuPress.timer);
+  tableMenuPress = null;
+}
+
+function activateTableMenuControl(control) {
+  if (control.disabled || !bottomMenu.contains(control)) return;
+
+  control.dispatchEvent(new CustomEvent('table-menu-action', {
+    bubbles: true
+  }));
+}
+
+bottomMenu.addEventListener('contextmenu', (event) => {
+  event.preventDefault();
 });
+
+bottomMenu.addEventListener('pointerdown', (event) => {
+  const control = event.target.closest('[data-action]');
+  if (!control || control.disabled) return;
+
+  cancelTableMenuPress();
+
+  // Rechtermuisknop: meteen uitvoeren.
+  if (event.pointerType === 'mouse') {
+    if (event.button === 2) {
+      event.preventDefault();
+      activateTableMenuControl(control);
+    }
+    return;
+  }
+
+  // Vinger of pen: 600 ms vasthouden.
+  if (!event.isPrimary) return;
+
+  event.preventDefault();
+
+  const press = {
+    id: event.pointerId,
+    x: event.clientX,
+    y: event.clientY,
+    timer: null
+  };
+
+  tableMenuPress = press;
+
+  press.timer = setTimeout(() => {
+    if (tableMenuPress !== press) return;
+
+    tableMenuPress = null;
+    activateTableMenuControl(control);
+  }, 600);
+});
+
+document.addEventListener('pointermove', (event) => {
+  if (!tableMenuPress || tableMenuPress.id !== event.pointerId) return;
+
+  const distance = Math.hypot(
+    event.clientX - tableMenuPress.x,
+    event.clientY - tableMenuPress.y
+  );
+
+  if (distance > 10) cancelTableMenuPress();
+}, true);
+
+document.addEventListener('pointerup', (event) => {
+  if (tableMenuPress?.id === event.pointerId) {
+    cancelTableMenuPress();
+  }
+}, true);
+
+document.addEventListener('pointercancel', cancelTableMenuPress, true);
+window.addEventListener('blur', cancelTableMenuPress);
+
+bottomMenu.style.touchAction = 'none';
+bottomMenu.style.userSelect = 'none';
+bottomMenu.style.webkitUserSelect = 'none';
+bottomMenu.style.webkitTouchCallout = 'none';
 
 window.addEventListener('resize', () => table.resize());
 window.addEventListener('orientationchange', () => table.resize());

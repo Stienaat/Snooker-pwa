@@ -319,9 +319,9 @@ footer a { color: #c3d0c5; }
 
 .bottom-menu {
   position: absolute;
-  left: 7%; right: 7%; bottom: 4.5%;
+  left: 17%; right: 17%; bottom: 4%;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   pointer-events: auto;
 }
 
