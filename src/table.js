@@ -1178,8 +1178,16 @@ export class SnookerTable {
     this.firstContact = null;
     this.pottedThisShot = [];
     this.statusMessage = 'FAUL OF GEEN POT';
-    this.guideMode = this.mode === 'school' ? 'off' : 'normal';
-    this.guideVisible =
+    const beginnerLevel =
+    this.mode === 'computer' &&
+    ['novice', 'basic'].includes(
+      String(this.phoneLevel).toLowerCase()
+    );
+
+    this.guideMode = this.mode === 'school'
+    ? 'off'
+    : beginnerLevel ? 'long' : 'normal';
+      this.guideVisible =
     this.guideMode !== 'off';
     this.effectSelectorOpen = false;
     this.topSpin = 0;
@@ -1217,19 +1225,23 @@ this.aimAngle =
     this.draw();
   }
 
-  toggleGuide() {
-    if (this.mode === 'school') {
-      this.guideMode = this.guideMode === 'extra'
-        ? 'normal'
-        : this.guideMode === 'normal' ? 'off' : 'extra';
-      this.guideVisible = this.guideMode !== 'off';
-      this.draw();
-      return this.guideMode;
-    }
-    this.guideVisible = !this.guideVisible;
-    this.draw();
-    return this.guideVisible;
-  }
+toggleGuide() {
+  const modes = this.mode === 'school'
+    ? ['off', 'normal', 'long', 'extra']
+    : ['off', 'normal', 'long'];
+
+  const current = this.guideVisible
+    ? (this.guideMode || 'normal')
+    : 'off';
+
+  const index = modes.indexOf(current);
+
+  this.guideMode = modes[(index + 1) % modes.length];
+  this.guideVisible = this.guideMode !== 'off';
+
+  this.draw();
+  return this.guideMode;
+}
   playTrainingPro() {
   if (
     this.mode !== 'school' ||
@@ -1444,8 +1456,8 @@ const fineAiming = this.pointer.aimMode === 'fine';
 
 const aimSensitivity = fineAiming
   ? event.pointerType === 'mouse'
-    ? 0.24
-    : 0.34
+    ? 0.08
+    : 0.12
   : 1.0;
 
 const maximumStep = fineAiming ? 0.055 : 0.18;
@@ -1455,7 +1467,11 @@ const limitedDifference = Math.max(
   Math.min(maximumStep, rawDifference)
 );
 
-this.aimAngle += limitedDifference * aimSensitivity;
+// Een tik om vast te zetten mag de richting niet verschuiven.
+// Pas na 3 pixels totale beweging beginnen we te richten.
+if (this.pointer.moved >= 3) {
+  this.aimAngle += limitedDifference * aimSensitivity;
+}
       }
     } else if (this.phase === 'locked') {
       const totalX = point.x - this.pointer.start.x;
@@ -2366,20 +2382,36 @@ if (this.whitePotted || !white) {
         endY
       );
 
-if (cueLocked) {
-  guideGradient.addColorStop(0, 'rgba(255,112,100,1)');
-  guideGradient.addColorStop(.18, 'rgba(255,102,92,.72)');
-  guideGradient.addColorStop(.38, 'rgba(255,92,82,.28)');
-  guideGradient.addColorStop(.58, 'rgba(255,82,72,.06)');
-  guideGradient.addColorStop(.72, 'rgba(255,82,72,0)');
-  guideGradient.addColorStop(1, 'rgba(255,82,72,0)');
-} else {
-  guideGradient.addColorStop(0, 'rgba(245,250,244,.82)');
-  guideGradient.addColorStop(.18, 'rgba(245,250,244,.60)');
-  guideGradient.addColorStop(.38, 'rgba(245,250,244,.24)');
-  guideGradient.addColorStop(.58, 'rgba(245,250,244,.05)');
-  guideGradient.addColorStop(.72, 'rgba(245,250,244,0)');
-  guideGradient.addColorStop(1, 'rgba(245,250,244,0)');
+const longGuide =
+  this.guideMode === 'long' ||
+  this.guideMode === 'extra';
+
+const stops = longGuide
+  ? [0, .45, .70, .88, 1]
+  : [0, .18, .38, .58, .72];
+
+const colors = cueLocked
+  ? [
+      'rgba(255,112,100,1)',
+      'rgba(255,102,92,.72)',
+      'rgba(255,92,82,.28)',
+      'rgba(255,82,72,.06)',
+      'rgba(255,82,72,0)'
+    ]
+  : [
+      'rgba(245,250,244,.82)',
+      'rgba(245,250,244,.60)',
+      'rgba(245,250,244,.24)',
+      'rgba(245,250,244,.05)',
+      'rgba(245,250,244,0)'
+    ];
+
+stops.forEach((position, index) => {
+  guideGradient.addColorStop(position, colors[index]);
+});
+
+if (!longGuide) {
+  guideGradient.addColorStop(1, colors[4]);
 }
       ctx.save();
       ctx.setLineDash([3, 7]);

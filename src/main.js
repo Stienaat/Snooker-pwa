@@ -172,7 +172,12 @@ function hideReadme() { readme.hidden = true; }
 function startGame(mode, level = null) {
   lobby.setPresence(playerNameInput.value, 'busy').catch(() => {});
   table.start(mode, level);
-  guideButton.textContent = mode === 'school' ? 'HULP UIT' : 'HULP AAN';
+  guideButton.textContent = {  
+    off: 'HULP UIT', 
+    normal: 'HULP KORT',  
+    long: 'HULP LANG',  
+    extra: 'HULP EXTRA' 
+  }[table.guideMode] || 'HULP UIT';
   newTrainingButton.hidden = mode !== 'school';
   bottomMenu.classList.toggle('school', mode === 'school');
   gameUi.classList.toggle('school-mode', mode === 'school');
@@ -308,16 +313,18 @@ if (control.disabled) return;
     table.toggleEffectSelector();
   }
 
-  if (action === 'guide') {
-    const guide = table.toggleGuide();
+if (action === 'guide') {
+  const guide = table.toggleGuide();
 
-    guideButton.textContent =
-      guide === 'extra'
-        ? 'HULP EXTRA'
-        : guide === 'normal' || guide === true
-          ? 'HULP NORMAAL'
-          : 'HULP UIT';
-  }
+  const labels = {
+    off: 'HULP UIT',
+    normal: 'HULP KORT',
+    long: 'HULP LANG',
+    extra: 'HULP EXTRA'
+  };
+
+  guideButton.textContent = labels[guide] || 'HULP UIT';
+}
 
   if (action === 'reset') {
     if (table.mode === 'online' &&
@@ -330,12 +337,12 @@ if (control.disabled) return;
     }
 
     table.reset();
-
-    guideButton.textContent =
-    table.mode === 'school'
-      ? 'HULP UIT'
-      : 'HULP AAN';
-    }
+    guideButton.textContent = {
+      off: 'HULP UIT',
+      normal: 'HULP KORT',
+      long: 'HULP LANG',
+      extra: 'HULP EXTRA'
+    }[table.guideMode] || 'HULP UIT';}
 
   if (action === 'new-training') {
     demoMenu.hidden = false;
@@ -473,5 +480,51 @@ if (playerNameInput.value.trim()) {
 }
 
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js?v=31'));
+  window.addEventListener('load', async () => {
+    const local = [
+      'localhost',
+      '127.0.0.1',
+      '[::1]'
+    ].includes(location.hostname);
+
+    try {
+      if (local) {
+        const appScope = new URL('./', location.href).href;
+        const registrations =
+          await navigator.serviceWorker.getRegistrations();
+
+        let removed = false;
+
+        for (const registration of registrations) {
+          if (registration.scope === appScope) {
+            const result = await registration.unregister();
+            removed = removed || result;
+          }
+        }
+
+        const keys = await caches.keys();
+
+        await Promise.all(
+          keys
+            .filter((key) => key.startsWith('fs-snooker-'))
+            .map((key) => caches.delete(key))
+        );
+
+        if (removed && navigator.serviceWorker.controller) {
+          location.reload();
+        }
+
+        return;
+      }
+
+      const registration =
+        await navigator.serviceWorker.register('./sw.js', {
+          updateViaCache: 'none'
+        });
+
+      await registration.update();
+    } catch (error) {
+      console.warn('Service worker:', error);
+    }
+  });
 }
